@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
+  <title>오늘운동</title>
+  <link rel="stylesheet" href="style.css">
+  <script>document.documentElement.classList.toggle('standalone', window.navigator.standalone);</script>
+</head>
+<body>
+  <header>
+    <h1>오늘운동</h1>
+    <div id="date"></div>
+    <button id="installBtn" hidden>앱 설치</button>
+  </header>
+
+  <main>
+    <section id="onboard" class="card hidden">
+      <h2>처음 설정</h2>
+      <p>오늘이 <b>몇 일차</b>인지 입력하거나, 날짜를 직접 선택하세요.</p>
+      <div class="onboard-grid">
+        <label>오늘이 <input type="number" id="onDay" min="1" value="1"> 일차</label>
+        <span class="muted">또는</span>
+        <label>시작 날짜 <input type="date" id="onStartDate"></label>
+      </div>
+      <button id="onConfirm">확인</button>
+      <p class="hint">기본 패턴: 1일차 푸시업 8회 / 플랭크 20초 / 스쿼트 10회. 매주 +4회/+15초/+4회(변경 가능).</p>
+    </section>
+
+    <section id="todayPlan" class="card">
+      <div class="plan-head">
+        <h2>오늘 운동</h2>
+        <div id="dayBadge" class="pill"></div>
+      </div>
+      <div id="restBanner" class="rest-banner hidden">오늘은 <b>휴식일</b>입니다 (설정에서 요일 변경 가능)</div>
+      <div class="plan-list" id="planList"></div>
+      <div class="hint">세트를 탭해서 완료 체크 • 길게 눌러 되돌리기</div>
+    </section>
+
+    <section id="exercises" class="card">
+      <div class="ex-head-row">
+        <h2>운동별 진행</h2>
+        <button id="addExerciseBtn">운동 추가</button>
+      </div>
+      <div id="exerciseList"></div>
+    </section>
+
+    <section id="stats" class="card">
+      <h2>오늘 요약</h2>
+      <div id="summary"></div>
+      <button id="clearToday" class="danger">오늘 기록 초기화</button>
+    </section>
+
+    <section class="card small">
+      <details>
+        <summary>설정 & 패턴</summary>
+        <div class="settings">
+          <div class="grid2">
+            <label>시작 날짜 <input type="date" id="cfgStartDate"></label>
+            <div>
+              <div class="label">휴식 요일</div>
+              <div id="restDays" class="rest-days"></div>
+            </div>
+          </div>
+          <div class="label">주간 증가량(기본)</div>
+          <div class="grid3" id="defaultIncs"></div>
+          <div class="label">운동별 설정</div>
+          <div id="exerciseConfigs"></div>
+          <button id="saveCfg">저장</button>
+        </div>
+        <ul class="help">
+          <li>주차는 시작일 기준 7일 단위로 계산합니다.</li>
+          <li>휴식 요일에는 체크가 잠깁니다(요약엔 “휴식일”).</li>
+          <li>타이머 끝나면 진동 지원: <code>navigator.vibrate</code> 가능 시 진동, 미지원이면 알림음/플래시.</li>
+        </ul>
+      </details>
+    </section>
+  </main>
+
+  <footer>
+    <small>© 2025 오늘운동 — PWA</small>
+  </footer>
+
+  <template id="exerciseTpl">
+    <div class="exercise">
+      <div class="ex-head">
+        <h3 class="ex-name"></h3>
+        <div class="ex-controls">
+          <button class="minus" aria-label="세트 빼기">−</button>
+          <span class="sets-label">세트: <b class="sets-count"></b></span>
+          <button class="plus" aria-label="세트 추가">＋</button>
+        </div>
+      </div>
+      <div class="reps"></div>
+      <div class="sets"></div>
+      <div class="timer-row hidden">
+        <div class="timer">00:00</div>
+        <button class="tStart">시작</button>
+        <button class="tPause" disabled>일시정지</button>
+        <button class="tReset" disabled>리셋</button>
+      </div>
+    </div>
+  </template>
+
+  <template id="exCfgTpl">
+    <div class="ex-cfg">
+      <div class="grid4">
+        <div><b class="cfg-name"></b><br><small class="muted cfg-type"></small></div>
+        <label>세트 <input type="number" class="cfg-sets" min="1" max="20"></label>
+        <label>기본(회/초) <input type="number" class="cfg-base" min="1"></label>
+        <label>주간증가 <input type="number" class="cfg-inc" min="0"></label>
+      </div>
+    </div>
+  </template>
+
+  <script src="app.js"></script>
+</body>
+</html>
