@@ -13,20 +13,17 @@
   <link rel="stylesheet" href="./styles.css">
   <script>
     if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js'));
+      addEventListener('load', () => navigator.serviceWorker.register('./sw.js'));
     }
   </script>
 </head>
 <body class="body-offset-ios">
-  <!-- iOS Large Title Navbar -->
   <header class="nav-large" role="banner">
     <div class="nav-title">오늘운동</div>
     <div id="today-date" class="nav-subtitle"></div>
   </header>
 
-  <!-- Screen container (only one child visible) -->
   <main id="screens" class="screens">
-    <!-- HOME -->
     <section id="tab-home" class="screen active" role="tabpanel" aria-labelledby="home">
       <div class="group">
         <div id="today-summary" class="cell row-between"></div>
@@ -34,7 +31,6 @@
       <div id="today-list" class="group stack"></div>
     </section>
 
-    <!-- CALENDAR -->
     <section id="tab-calendar" class="screen" role="tabpanel" aria-labelledby="calendar">
       <div class="group">
         <div class="cell row-between calendar-header">
@@ -54,7 +50,6 @@
       </div>
     </section>
 
-    <!-- RANK -->
     <section id="tab-rank" class="screen" role="tabpanel" aria-labelledby="rank">
       <div class="group">
         <div id="rank-card" class="cell"></div>
@@ -72,7 +67,6 @@
       </div>
     </section>
 
-    <!-- SETTINGS -->
     <section id="tab-settings" class="screen" role="tabpanel" aria-labelledby="settings">
       <div class="group">
         <div class="cell header">시작 날짜</div>
@@ -134,7 +128,6 @@
     </section>
   </main>
 
-  <!-- Bottom Tabbar -->
   <nav class="tabbar" role="navigation" aria-label="탭">
     <button class="tabbar-btn active" data-tab="home"><span class="ico" data-i="home"></span><span class="lbl">홈</span></button>
     <button class="tabbar-btn" data-tab="calendar"><span class="ico" data-i="calendar"></span><span class="lbl">달력</span></button>

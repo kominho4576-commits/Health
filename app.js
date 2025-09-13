@@ -1,8 +1,19 @@
-// 오늘운동 v3.8 — true screen switching + deep iOS UI
+// 오늘운동 v3.8.3 — dynamic layout + iOS-style
 const $ = (s, el=document)=>el.querySelector(s);
 const $$ = (s, el=document)=>[...el.querySelectorAll(s)];
-const STORE_KEY = 'ow_state_v3_8';
+const STORE_KEY = 'ow_state_v3_8_3';
 const todayStr = new Date().toISOString().slice(0,10);
+
+// ---------- Measure bars & avoid overlap ----------
+function measureBars(){
+  const nav = document.querySelector('.nav-large');
+  const tab = document.querySelector('.tabbar');
+  if(nav){ document.documentElement.style.setProperty('--nav-h', nav.offsetHeight + 'px'); }
+  if(tab){ document.documentElement.style.setProperty('--tab-h', tab.offsetHeight + 'px'); }
+}
+window.addEventListener('load', measureBars);
+window.addEventListener('resize', measureBars);
+if (window.visualViewport) window.visualViewport.addEventListener('resize', measureBars);
 
 // ---------- State ----------
 function demoExercises(){
@@ -48,13 +59,10 @@ $$(".tabbar-btn").forEach(btn=>{
   btn.addEventListener("click", ()=> switchTo(btn.dataset.tab));
 });
 function switchTo(tab){
-  // buttons state
   $$(".tabbar-btn").forEach(b=>b.classList.toggle("active", b.dataset.tab===tab));
-  // show only one .screen
   $$(".screen").forEach(s=>s.classList.remove("active"));
   const panel = $("#tab-"+tab);
   if(panel){ panel.classList.add("active"); }
-  // render per screen
   if(tab==='home') renderHome();
   if(tab==='calendar') renderCalendar();
   if(tab==='rank'){ renderRank(); renderQuests(); }
@@ -146,7 +154,7 @@ function renderHome(){
       };
       stop.onclick=()=>{ if(timerId){ clearInterval(timerId); timerId=null; } };
     }
-    $("#today-list").appendChild(cell);
+    list.appendChild(cell);
   });
 }
 
@@ -350,5 +358,5 @@ function renderSettings(){
 }
 
 // ---------- Boot ----------
-switchTo("home");
-renderHome(); renderCalendar(); renderRank(); renderQuests(); renderSettings();
+function init(){ switchTo("home"); renderHome(); renderCalendar(); renderRank(); renderQuests(); renderSettings(); }
+init();

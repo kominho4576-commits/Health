@@ -1,13 +1,16 @@
 *:focus{outline:2px solid rgba(10,132,255,.6); outline-offset:2px}
 :root{
+  --nav-h:0px; --tab-h:0px;
   --bg:#0b1020; --panel:#0d1425; --line:#1f2937; --sub:#9ca3af; --text:#e5e7eb;
   --tint:#0a84ff; --tint2:#64d2ff; --green:#30d158; --yellow:#ffd60a; --red:#ff453a;
   --radius:14px; --shadow:0 8px 24px #0009;
 }
 html,body{height:100%}
+html{background:#0b1020}
 body{
   margin:0; font-family:-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo','Noto Sans KR',system-ui,sans-serif;
   color:var(--text); background:radial-gradient(1200px 800px at 20% -10%, #0f1730, #0b1020 55%) fixed;
+  overflow:hidden;
 }
 
 /* Large title navbar */
@@ -16,15 +19,15 @@ body{
 .nav-title{font-weight:800;font-size:28px}
 .nav-subtitle{color:var(--sub);font-size:12px;margin-top:4px}
 
-.body-offset-ios{padding-top:86px;padding-bottom:calc(96px + env(safe-area-inset-bottom))}
+.body-offset-ios{padding-top:calc(var(--nav-h) + 8px);padding-bottom:0}
 
-/* Screen container — only one visible */
-.screens{max-width:760px;margin:0 auto;padding:12px; padding-bottom:calc(96px + env(safe-area-inset-bottom))}
-.screen{display:none; animation:fadeIn .18s ease-out; min-height:calc(100vh - 170px); padding-bottom:calc(120px + env(safe-area-inset-bottom))}
+/* Screen container and screens */
+.screens{max-width:760px;margin:0 auto;}
+.screen{display:none;animation:fadeIn .18s ease-out;height:calc(100dvh - var(--nav-h) - var(--tab-h));overflow:auto;-webkit-overflow-scrolling:touch;overscroll-behavior-y:contain;padding:12px 14px;}
 .screen.active{display:block}
 @keyframes fadeIn{from{opacity:.0;transform:translateY(4px)} to{opacity:1;transform:none}}
 
-/* iOS Grouped list style */
+/* Grouped list style */
 .group{background:transparent;margin:12px 0}
 .cell{background:linear-gradient(180deg, rgba(17,24,39,.95), rgba(11,16,32,.9));
   border:1px solid var(--line);border-radius:12px;box-shadow:var(--shadow);padding:12px;overflow:hidden}
@@ -75,14 +78,10 @@ body{
 .cell-date.partial{background:#2a2407;border-color:#705100}
 .cell-date.rest{opacity:.5}
 .cal-title{font-weight:800}
-#calendar-detail pre{white-space:pre-wrap}
 
 /* Forms */
 .form-grid{display:grid;grid-template-columns:1fr;gap:10px}
-@media(min-width:900px){.form-grid{grid-template-columns:1fr 1fr}}
-.form-grid .span-2{grid-column:1 / span 1}
-@media(min-width:900px){.form-grid .span-2{grid-column:1 / span 2}}
-.form-grid .span-2{grid-column:1 / span 2}
+@media(min-width:900px){.form-grid{grid-template-columns:1fr 1fr} .form-grid .span-2{grid-column:1 / span 2}}
 input,select{width:100%;padding:12px;border-radius:12px;border:1px solid #2b3447;background:#0e1527;color:#e5e7eb;min-height:44px;box-sizing:border-box;-webkit-appearance:none;appearance:none}
 
 /* Bottom tabbar */
@@ -94,7 +93,4 @@ input,select{width:100%;padding:12px;border-radius:12px;border:1px solid #2b3447
 [data-i="home"]{-webkit-mask-image:url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="black" d="M12 3 3 10v11h6v-6h6v6h6V10z"/></svg>'); mask-image:url('data:image/svg+xml;utf8,<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\"><path fill=\"black\" d=\"M12 3 3 10v11h6v-6h6v6h6V10z\"/></svg>');}
 [data-i="calendar"]{-webkit-mask-image:url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="black" d="M7 2h2v2h6V2h2v2h3v18H4V4h3V2zm13 7H4v11h16V9z"/></svg>'); mask-image:url('data:image/svg+xml;utf8,<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\"><path fill=\"black\" d=\"M7 2h2v2h6V2h2v2h3v18H4V4h3V2zm13 7H4v11h16V9z\"/></svg>');}
 [data-i="trophy"]{-webkit-mask-image:url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="black" d="M6 2h12v3h3v4a5 5 0 0 1-5 5 6 6 0 0 1-3 2.7V19h4v3H7v-3h4v-2.3A6 6 0 0 1 8 14a5 5 0 0 1-5-5V5h3V2zm13 5v2a3 3 0 0 1-3 3V7h3zM5 7v2a3 3 0 0 0 3 3V7H5z"/></svg>'); mask-image:url('data:image/svg+xml;utf8,<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\"><path fill=\"black\" d=\"M6 2h12v3h3v4a5 5 0 0 1-5 5 6 6 0 0 1-3 2.7V19h4v3H7v-3h4v-2.3A6 6 0 0 1 8 14a5 5 0 0 1-5-5V5h3V2zm13 5v2a3 3 0 0 1-3 3V7h3zM5 7v2a3 3 0 0 0 3 3V7H5z\"/></svg>');}
-[data-i="gear"]{-webkit-mask-image:url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="black" d="M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8zm-9 4a9 9 0 0 1 .2-1.9l2.2-.3.8-2-1.5-1.7A9.1 9.1 0 0 1 6 2.8L7.7 4l2-.8.3-2.2A9 9 0 0 1 14 1l.3 2.2 2 .8L17.9 2.8a9.1 9.1 0 0 1 3.3 3.3L19.5 8l.8 2 2.2.3a9 9 0 0 1 0 4l-2.2.3-.8 2 1.7 1.9a9.1 9.1 0 0 1-3.3 3.3L16.3 20l-2 .8L14 23a9 9 0 0 1-4 0l-.3-2.2-2-.8L6.1 21.2A9.1 9.1 0 0 1 2.8 18l1.7-1.9-.8-2L1.5 13A9 9 0 0 1 3 12z"/></svg>'); mask-image:url('data:image/svg+xml;utf8,<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\"><path fill=\"black\" d=\"M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8zm-9 4a9 9 0 0 1 .2-1.9l2.2-.3.8-2-1.5-1.7A9.1 9.1 0 0 1 6 2.8L7.7 4l2-.8.3-2.2A9 9 0 0 1 14 1l.3 2.2 2 .8L17.9 2.8a9.1 9.1 0 0 1 3.3 3.3L19.5 8l.8 2 2.2.3a9 9 0 0 1 0 4l-2.2.3-.8 2 1.7 1.9a9.1 9.1 0 0 1-3.3 3.3L16.3 20l-2 .8L14 23a9 9 0 0 1-4 0l-.3-2.2-2-.8L6.1 21.2A9.1 9.1 0 0 1 2.8 18l1.7-1.9-.8-2L1.5 13A9 9 0 0 1 3 12z\"/></svg>');}
-
-.list-reset{list-style:none;margin:8px 0 0 0;padding:0}
-.list-reset li{padding:2px 0}
+[data-i="gear"]{-webkit-mask-image:url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="black" d="M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8zm-9 4a9 9 0 0 1 .2-1.9l2.2-.3.8-2-1.5-1.7A9.1 9.1 0 0 1 6 2.8L7.7 4l2-.8.3-2.2A9 9 0 0 1 14 1l.3 2.2 2 .8L17.9 2.8a9.1 9.1 0 0 1 3.3 3.3L19.5 8l.8 2 2.2.3a9 9 0 0 1 0 4l-2.2.3-.8 2 1.7 1.9a9.1 9.1 0 0 1 3.3 3.3L16.3 20l-2 .8L14 23a9 9 0 0 1-4 0l-.3-2.2-2-.8L6.1 21.2A9.1 9.1 0 0 1 2.8 18l1.7-1.9-.8-2L1.5 13A9 9 0 0 1 3 12z"/></svg>'); mask-image:url('data:image/svg+xml;utf8,<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\"><path fill=\"black\" d=\"M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8zm-9 4a9 9 0 0 1 .2-1.9l2.2-.3.8-2-1.5-1.7A9.1 9.1 0 0 1 6 2.8L7.7 4l2-.8.3-2.2A9 9 0 0 1 14 1l.3 2.2 2 .8L17.9 2.8a9.1 9.1 0 0 1 3.3 3.3L19.5 8l.8 2 2.2.3a9 9 0 0 1 0 4l-2.2.3-.8 2 1.7 1.9a9.1 9.1 0 0 1 3.3 3.3L16.3 20l-2 .8L14 23a9 9 0 0 1-4 0l-.3-2.2-2-.8L6.1 21.2A9.1 9.1 0 0 1 2.8 18l1.7-1.9-.8-2L1.5 13A9 9 0 0 1 3 12z\"/></svg>');}
