@@ -117,3 +117,7 @@ button.ghost.delete{padding:.5rem .8rem;border-radius:.7rem;min-width:84px}
 .ghost.tiny{padding:.28rem .55rem;font-size:.85rem;border-radius:.6rem}
 .quest-list .status{margin-left:auto}
 .quest-list .done-badge{background:rgba(0,255,153,.15); border:1px solid rgba(0,255,153,.35); color:#c9ffef; padding:.2rem .5rem; border-radius:.6rem; font-weight:700}
+
+/* Exercise list meta lines */
+.list .line1{font-size:1rem; line-height:1.2}
+.list .line2{margin-top:.2rem; font-size:.92rem}

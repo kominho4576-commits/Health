@@ -297,7 +297,8 @@ $('#today-label').textContent = `${todayStr} (${WEEKDAYS[today.getDay()]})`;
     ];
 
     const list = $("#quest-list"); list.innerHTML = "";
-    quests.forEach(q=>{
+    let doneCount = 0;
+    quests.forEach(q=>{ if(q.met) doneCount++;
       const li = document.createElement('li');
       const left = document.createElement('span'); left.className = 'q-name'; left.textContent = q.name;
       li.appendChild(left);
@@ -331,6 +332,8 @@ $('#today-label').textContent = `${todayStr} (${WEEKDAYS[today.getDay()]})`;
       li.appendChild(right);
       list.appendChild(li);
     });
+    const prog = quests.length? Math.round((doneCount/quests.length)*100):0;
+    $('#quest-progress').style.width = prog+'%';
   }
   function renderSettings(){
     $("#start-date").value = state.startDate;
@@ -349,7 +352,7 @@ $('#today-label').textContent = `${todayStr} (${WEEKDAYS[today.getDay()]})`;
     state.exercises.forEach(ex=>{
       const item = document.createElement("div"); item.className = "row space";
       const meta = document.createElement("div");
-      meta.innerHTML = `<strong>${ex.name}</strong> <span class="muted">${ex.type==="count" ? "횟수" : "시간"} · ${ex.sets}세트 · 주${ex.weeklyInc}증가 · 요일:${(ex.days||[]).map(d=>WEEKDAYS[d]).join("")}</span>`;
+      meta.innerHTML = `<strong>${ex.name}</strong><br><span class="muted">${ex.type==="count" ? "횟수" : "시간"} · ${ex.sets}세트 · 주${ex.weeklyInc}증가 · 요일:${(ex.days||[]).map(d=>WEEKDAYS[d]).join("")}</span>`;
       const del = document.createElement("button"); del.className = "ghost delete large-tap"; del.textContent = "삭제";
       del.addEventListener("click", ()=>{
         state.exercises = state.exercises.filter(e=>e.id!==ex.id);
