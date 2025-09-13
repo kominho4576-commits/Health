@@ -13,12 +13,12 @@
 </head>
 <body>
   <header>
-    <h1>오늘운동</h1>
+    <h1 id="title">오늘운동</h1>
     <div id="date"></div>
     <button id="installBtn" hidden>앱 설치</button>
   </header>
 
-  <main>
+  <main id="view-home" class="view active">
     <section id="onboard" class="card hidden">
       <h2>처음 설정</h2>
       <p>오늘이 <b>몇 일차</b>인지 입력하거나, 날짜를 직접 선택하세요.</p>
@@ -54,32 +54,67 @@
       <div id="summary"></div>
       <button id="clearToday" class="danger">오늘 기록 초기화</button>
     </section>
+  </main>
 
-    <section class="card small">
-      <details>
-        <summary>설정 & 패턴</summary>
-        <div class="settings">
-          <div class="grid2">
-            <label>시작 날짜 <input type="date" id="cfgStartDate"></label>
-            <div>
-              <div class="label">휴식 요일</div>
-              <div id="restDays" class="rest-days"></div>
-            </div>
-          </div>
-          <div class="label">주간 증가량(기본)</div>
-          <div class="grid3" id="defaultIncs"></div>
-          <div class="label">운동별 설정</div>
-          <div id="exerciseConfigs"></div>
-          <button id="saveCfg">저장</button>
-        </div>
-        <ul class="help">
-          <li>주차는 시작일 기준 7일 단위로 계산합니다.</li>
-          <li>휴식 요일에는 체크가 잠깁니다(요약엔 “휴식일”).</li>
-          <li>타이머 끝나면 진동 지원: <code>navigator.vibrate</code> 가능 시 진동, 미지원이면 알림음/플래시.</li>
-        </ul>
-      </details>
+  <main id="view-calendar" class="view">
+    <section class="card">
+      <h2>달력</h2>
+      <div id="calHeader" class="cal-head">
+        <button id="calPrev">‹</button>
+        <div id="calMonth"></div>
+        <button id="calNext">›</button>
+      </div>
+      <div class="calendar" id="calendar"></div>
+      <div id="calDetail" class="cal-detail"></div>
     </section>
   </main>
+
+  <main id="view-rank" class="view">
+    <section class="card">
+      <h2>랭크</h2>
+      <div class="rank-wrap">
+        <div class="rank-badge" id="rankBadge">Bronze</div>
+        <div class="rank-progress"><div id="rankBar"></div></div>
+        <div class="muted" id="rankInfo"></div>
+      </div>
+    </section>
+    <section class="card">
+      <h3>퀘스트</h3>
+      <ul id="questList" class="quest-list"></ul>
+    </section>
+  </main>
+
+  <main id="view-settings" class="view">
+    <section class="card small">
+      <h2>설정</h2>
+      <div class="settings">
+        <div class="grid2">
+          <label>시작 날짜 <input type="date" id="cfgStartDate"></label>
+          <div>
+            <div class="label">휴식 요일</div>
+            <div id="restDays" class="rest-days"></div>
+          </div>
+        </div>
+        <div class="label">주간 증가량(기본)</div>
+        <div class="grid3" id="defaultIncs"></div>
+        <div class="label">운동별 설정</div>
+        <div id="exerciseConfigs"></div>
+        <button id="saveCfg">저장</button>
+      </div>
+      <ul class="help">
+        <li>주차는 시작일 기준 7일 단위로 계산합니다.</li>
+        <li>휴식 요일에는 체크가 잠깁니다.</li>
+        <li>요일별 루틴으로 각 운동의 실행 요일을 지정할 수 있습니다.</li>
+      </ul>
+    </section>
+  </main>
+
+  <nav class="tabbar">
+    <button data-view="home" class="active">🏠<span>홈</span></button>
+    <button data-view="calendar">📅<span>달력</span></button>
+    <button data-view="rank">🏆<span>랭크</span></button>
+    <button data-view="settings">⚙️<span>설정</span></button>
+  </nav>
 
   <footer>
     <small>© 2025 오늘운동 — PWA</small>
@@ -114,6 +149,16 @@
         <label>기본(회/초) <input type="number" class="cfg-base" min="1"></label>
         <label>주간증가 <input type="number" class="cfg-inc" min="0"></label>
         <button class="cfg-del danger" title="삭제">삭제</button>
+      </div>
+      <div class="dow">
+        <span class="muted">실행 요일:</span>
+        <label><input type="checkbox" class="dow-cb" data-dow="1">월</label>
+        <label><input type="checkbox" class="dow-cb" data-dow="2">화</label>
+        <label><input type="checkbox" class="dow-cb" data-dow="3">수</label>
+        <label><input type="checkbox" class="dow-cb" data-dow="4">목</label>
+        <label><input type="checkbox" class="dow-cb" data-dow="5">금</label>
+        <label><input type="checkbox" class="dow-cb" data-dow="6">토</label>
+        <label><input type="checkbox" class="dow-cb" data-dow="0">일</label>
       </div>
     </div>
   </template>
