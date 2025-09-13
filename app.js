@@ -1,32 +1,33 @@
-// 오늘운동 v3.2 — iOS tabbar anti-wobble using visualViewport
+// 오늘운동 v3.3 — stronger iOS tabbar pin, restored rank UI
 const $ = (sel, el=document) => el.querySelector(sel);
 const $$ = (sel, el=document) => Array.from(el.querySelectorAll(sel));
 
-// ---- anti-wobble: lock tabbar to viewport bottom ----
+/* Anti-wobble 2.0: clamp tiny visualViewport deltas, constant spacer */
 (function pinTabbar(){
   const tabbar = $("#tabbar");
-  const footspace = $("#footspace");
   if (!tabbar) return;
-
+  let lastDY=0;
   function apply(){
-    const vv = window.visualViewport;
-    // gap between layout viewport and visual viewport (browser chrome height)
-    const gap = vv ? Math.max(0, window.innerHeight - vv.height - vv.offsetTop) : 0;
-    // Set CSS vars so CSS can position and reserve space consistently
-    document.documentElement.style.setProperty("--tabbar-bottom", `${gap}px`);
-    // Reserve space equal to tabbar height + gap + safe-area
-    const h = tabbar.getBoundingClientRect().height;
-    document.documentElement.style.setProperty("--tabbar-space", `${h + gap + 10}px`);
+    let dy=0;
+    const vv=window.visualViewport;
+    if (vv){
+      const raw = window.innerHeight - vv.height - vv.offsetTop;
+      // clamp to [0, 40] and round to integer to avoid micro-jitter
+      dy = Math.min(40, Math.max(0, Math.round(raw)));
+    }
+    if (Math.abs(dy-lastDY)>1){
+      document.documentElement.style.setProperty("--tabbar-dy", dy+"px");
+      lastDY=dy;
+    }
   }
   apply();
   if (window.visualViewport){
-    window.visualViewport.addEventListener('resize', apply);
-    window.visualViewport.addEventListener('scroll', apply);
+    window.visualViewport.addEventListener('resize', ()=>requestAnimationFrame(apply));
+    window.visualViewport.addEventListener('scroll', ()=>requestAnimationFrame(apply));
   }
   window.addEventListener('orientationchange', ()=>setTimeout(apply, 250));
   window.addEventListener('load', apply);
 })();
-// -----------------------------------------------------
 
 const K_SETTINGS = "workout.v3.settings";
 const K_DAILY = (ds) => `workout.v3.daily.${ds}`;

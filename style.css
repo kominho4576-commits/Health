@@ -4,6 +4,9 @@
   --ring: rgba(77,163,255,0.35);
 }
 html,body{margin:0;padding:0;background:var(--bg);color:var(--fg);font-family:-apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', 'Noto Sans KR', system-ui, sans-serif; overflow-x:hidden;}
+/* prevent iOS rubber-band from moving fixed bars */
+body{overscroll-behavior-y:none}
+.view{overscroll-behavior:contain}
 .hidden{display:none!important}
 
 /* Fixed title bar */
@@ -94,14 +97,13 @@ button.danger.sm{padding:6px 8px;font-size:12px}
 .dot.partial{background:#4da3ff}
 .cell .dots{display:flex;gap:4px;flex-wrap:wrap}
 
-/* Fixed bottom tabbar (no emojis) */
+/* Fixed bottom tabbar (anti-wobble) */
 .tabbar.fixed{
-  position:fixed; left:0; right:0;
+  position:fixed; left:0; right:0; bottom: env(safe-area-inset-bottom);
   display:grid; grid-template-columns:repeat(4,1fr); gap:8px;
   background:rgba(14,15,18,0.92); backdrop-filter:saturate(120%) blur(8px);
   padding:10px 12px; border-top:1px solid #1f2228; z-index:20;
-  /* bottom will be controlled by JS via --tabbar-bottom to avoid iOS wobble */
-  bottom: var(--tabbar-bottom, calc(env(safe-area-inset-bottom) + 0px));
+  transform: translateY(var(--tabbar-dy,0px)); /* small correction managed by JS */
 }
 .tabbar button{
   display:flex; align-items:center; justify-content:center;
@@ -111,5 +113,5 @@ button.danger.sm{padding:6px 8px;font-size:12px}
 .tabbar button.active{outline:2px solid var(--ring)}
 .tabbar button span{pointer-events:none}
 
-/* spacer for fixed bars (height is JS-managed) */
-.footspace{height: var(--tabbar-space, 120px)}
+/* spacer for fixed bars — constant to unify views */
+.footspace{height: 110px}
