@@ -1,4 +1,4 @@
-// 오늘운동 v3.5 — fixed header with built-in top nav; click handlers fixed
+// 오늘운동 v3.6 — fixed header padding + Safari click fix
 const $ = (sel, el=document) => el.querySelector(sel);
 const $$ = (sel, el=document) => Array.from(el.querySelectorAll(sel));
 
@@ -8,8 +8,10 @@ function measureHeader(){
   if(!hb) return;
   const h = hb.offsetHeight;
   document.documentElement.style.setProperty("--appbar-h", h+"px");
+  $$(".view").forEach(v=>v.style.paddingTop = h + "px");
 }
-window.addEventListener('load', measureHeader);
+document.addEventListener('DOMContentLoaded', measureHeader);
+window.addEventListener('load', ()=>setTimeout(measureHeader, 0));
 window.addEventListener('resize', ()=>setTimeout(measureHeader, 50));
 window.addEventListener('orientationchange', ()=>setTimeout(measureHeader, 250));
 
@@ -98,7 +100,7 @@ const views = {
   rank: $("#view-rank"),
   settings: $("#view-settings"),
 };
-/* CLICK HANDLERS — make sure it works */
+/* CLICK HANDLERS — Safari-safe */
 $("#topnav").addEventListener('click', (e)=>{
   const btn=e.target.closest('button[data-view]'); if(!btn) return;
   const v=btn.dataset.view;
@@ -107,7 +109,8 @@ $("#topnav").addEventListener('click', (e)=>{
   $("#title").textContent = v==="home"?"오늘운동": v==="calendar"?"달력": v==="rank"?"랭크":"설정";
   if (v==="calendar") renderCalendar();
   if (v==="rank") renderRank();
-  window.scrollTo({top:0, behavior:'instant'});
+  // FIX: Safari supports 'auto' and 'smooth' only
+  try{ window.scrollTo({top:0, behavior:'auto'}); }catch{ window.scrollTo(0,0); }
 });
 
 const dateLabel=$("#date"), dayBadge=$("#dayBadge"), restBanner=$("#restBanner"), planList=$("#planList"), exerciseList=$("#exerciseList"), summary=$("#summary");
