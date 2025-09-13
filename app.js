@@ -2,7 +2,7 @@
 const $ = (s, el=document)=>el.querySelector(s);
 const $$ = (s, el=document)=>[...el.querySelectorAll(s)];
 const STORE_KEY = 'ow_state_v3_8_3';
-const todayStr = new Date().toISOString().slice(0,10);
+const todayStr = getLocalDateString();
 
 // ---------- Measure bars & avoid overlap ----------
 function measureBars(){
@@ -47,9 +47,14 @@ let S = loadState();
 $("#today-date").textContent = getKSTDateString(new Date());
 
 // ---------- Utils ----------
+function getLocalDateString(d=new Date()){
+  const y=d.getFullYear(); const m=String(d.getMonth()+1).padStart(2,'0'); const day=String(d.getDate()).padStart(2,'0');
+  return `${y}-${m}-${day}`;
+}
+
 function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 function uid(){ return Math.random().toString(36).slice(2,9); }
-function daysBetween(a,b){ return Math.round((Date.parse(b)-Date.parse(a))/86400000); }
+function daysBetween(a,b){ return Math.round((new Date(a+'T00:00:00').getTime()-new Date(b+'T00:00:00').getTime())/86400000*-1); }
 function getKSTDateString(d){ const off=9*60; const local = new Date(d.getTime()+off*60000); return local.toISOString().slice(0,10); }
 function formatHM(ms){ const s=Math.max(0,Math.floor(ms/1000)); const m=Math.floor(s/60), r=s%60; return `${String(m).padStart(2,'0')}:${String(r).padStart(2,'0')}`; }
 function beepShort(){ const ctx=new (window.AudioContext||window.webkitAudioContext)(); const o=ctx.createOscillator(), g=ctx.createGain(); o.type="square"; o.frequency.value=880; g.gain.setValueAtTime(0.2, ctx.currentTime); g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime+0.2); o.connect(g).connect(ctx.destination); o.start(); o.stop(ctx.currentTime+0.2); }
@@ -72,7 +77,7 @@ window.addEventListener("DOMContentLoaded", ()=> switchTo("home"));
 
 // ---------- Domain ----------
 function isRestDay(dateStr){ const wd=new Date(dateStr).getDay(); return S.restDays.includes(wd); }
-function exercisesForDate(dateStr){ const wd=new Date(dateStr).getDay(); return S.exercises.filter(ex=>ex.days.includes(wd)); }
+function exercisesForDate(dateStr){ const wd=new Date(dateStr+'T00:00:00').getDay(); return S.exercises.filter(ex=>ex.days.includes(wd)); }
 function effectiveValue(ex, dateStr){ const weeks=Math.max(0, Math.floor(daysBetween(S.startDate, dateStr)/7)); return ex.base + weeks*(ex.weeklyIncr||0); }
 function ensureLog(dateStr){
   if(!S.logs[dateStr]) S.logs[dateStr] = { setsDoneByExId:{}, secondsLeftByExId:{}, points:0, memo:'' };
@@ -241,9 +246,16 @@ function genQuestsFor(dateStr){
   return qs;
 }
 function ensureQuests(dateStr){
-  if(S.lastQuestDate !== dateStr){
+  const todays = exercisesForDate(dateStr);
+  if (S.lastQuestDate !== dateStr) {
     S.questsByDate[dateStr] = genQuestsFor(dateStr);
     S.lastQuestDate = dateStr; saveState(S);
+  } else {
+    const existing = S.questsByDate[dateStr];
+    if ((!existing || existing.length === 0) && todays.length > 0) {
+      S.questsByDate[dateStr] = genQuestsFor(dateStr);
+      saveState(S);
+    }
   }
   return S.questsByDate[dateStr]||[];
 }
@@ -285,7 +297,7 @@ function renderSettings(){
   if(applyBtn) applyBtn.onclick = ()=>{
     const n=parseInt($("#start-days").value||"1",10);
     const d=new Date(); d.setDate(d.getDate()-(n-1));
-    S.startDate = getKSTDateString(d); saveState(S); renderSettings(); renderHome(); renderCalendar();
+    S.startDate = getKSTDateString(d); saveState(S); renderSettings(); renderHome(); renderCalendar(); renderQuests();
   };
 
   const labels=['일','월','화','수','목','금','토'];
@@ -308,7 +320,7 @@ function renderSettings(){
     if(!name || sets<1 || base<1 || days.length===0){ alert('필수 항목을 확인하세요.'); return; }
     S.exercises.push({id:uid(), name, type, sets, base, weeklyIncr:incr||0, days}); saveState(S);
     $("#ex-name").value=""; $("#ex-sets").value=""; $("#ex-base").value=""; $("#ex-incr").value=""; daysWrap.querySelectorAll('.chip.active').forEach(el=>el.classList.remove('active'));
-    renderSettings(); renderHome(); renderCalendar();
+    renderSettings(); renderHome(); renderCalendar(); renderQuests();
   };
 
   const exList=$("#ex-list"); exList.innerHTML="";
@@ -327,7 +339,7 @@ function renderSettings(){
       </div>`;
     const btnEdit=line.querySelector('[data-act="edit"]');
     const btnDel=line.querySelector('[data-act="del"]');
-    btnDel.onclick=()=>{ if(confirm('삭제할까요?')){ S.exercises=S.exercises.filter(e=>e.id!==ex.id); saveState(S); renderSettings(); renderHome(); renderCalendar(); } };
+    btnDel.onclick=()=>{ if(confirm('삭제할까요?')){ S.exercises=S.exercises.filter(e=>e.id!==ex.id); saveState(S); renderSettings(); renderHome(); renderCalendar(); renderQuests(); } };
     btnEdit.onclick=()=>{
       const name=prompt("이름", ex.name); if(name===null) return;
       const type=prompt("타입(count|time)", ex.type)||ex.type;
@@ -340,7 +352,7 @@ function renderSettings(){
       else { const map={일:0,월:1,화:2,수:3,목:4,금:5,토:6}; days=[...ds].map(ch=>map[ch]).filter(v=>v>=0); }
       if(!name || !sets || !base || days.length===0){ alert('값을 확인하세요'); return; }
       ex.name=name; ex.type=(type==='time'?'time':'count'); ex.sets=sets; ex.base=base; ex.weeklyIncr=incr; ex.days=days;
-      saveState(S); renderSettings(); renderHome(); renderCalendar();
+      saveState(S); renderSettings(); renderHome(); renderCalendar(); renderQuests();
     };
     exList.appendChild(line);
   });
