@@ -14,7 +14,6 @@
     {name:"GrandMaster", need:7500}
   ];
 
-  // ---------- Audio: simple beep using WebAudio
   let audioCtx;
   function unlockAudio(){
     if(!audioCtx){
@@ -40,10 +39,9 @@
     setTimeout(()=>o.stop(), ms+20);
   }
 
-  // ---------- State
   const initialState = {
     startDate: new Date().toISOString().slice(0,10),
-    restDays: [0], // 일 휴식
+    restDays: [0],
     exercises: [
       {id: crypto.randomUUID(), name:"푸쉬업", type:"count", sets:3, base:10, weeklyInc:2, days:[1,3,5]},
       {id: crypto.randomUUID(), name:"스쿼트", type:"count", sets:3, base:15, weeklyInc:5, days:[2,4]},
@@ -59,37 +57,25 @@
     try { return JSON.parse(localStorage.getItem("ow_state")) || initialState; }
     catch(e){ return initialState; }
   }
-  function save(){
-    localStorage.setItem("ow_state", JSON.stringify(state));
-  }
+  function save(){ localStorage.setItem("ow_state", JSON.stringify(state)); }
   let state = load();
 
-  // ---------- Utilities
   const today = new Date();
-  const todayStr = today.toISOString().slice(0,10);
+function pad(n){return String(n).padStart(2,'0');}
+function localDateStr(d){return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`}
+const todayStr = localDateStr(today);
+$('#today-label').textContent = `${todayStr} (${WEEKDAYS[today.getDay()]})`;
   $("#today-label").textContent = `${todayStr} (${WEEKDAYS[today.getDay()]})`;
 
   function daysBetween(a,b){
     const d = (new Date(b).setHours(0,0,0,0) - new Date(a).setHours(0,0,0,0)) / 86400000;
     return Math.floor(d);
   }
-  function weeksSinceStart(d = todayStr){
-    return Math.max(0, Math.floor(daysBetween(state.startDate, d) / 7));
-  }
-  function isRestDay(d){
-    const wd = new Date(d).getDay();
-    return state.restDays.includes(wd);
-  }
-  function exercisesForDate(d){
-    const wd = new Date(d).getDay();
-    return state.exercises.filter(ex => ex.days?.includes(wd));
-  }
-  function targetFor(ex, d = todayStr){
-    const inc = weeksSinceStart(d) * (Number(ex.weeklyInc)||0);
-    return Math.max(1, Number(ex.base||0) + inc);
-  }
+  function weeksSinceStart(d = todayStr){ return Math.max(0, Math.floor(daysBetween(state.startDate, d) / 7)); }
+  function isRestDay(d){ const wd = new Date(d).getDay(); return state.restDays.includes(wd); }
+  function exercisesForDate(d){ const wd = new Date(d).getDay(); return state.exercises.filter(ex => ex.days?.includes(wd)); }
+  function targetFor(ex, d = todayStr){ const inc = weeksSinceStart(d) * (Number(ex.weeklyInc)||0); return Math.max(1, Number(ex.base||0) + inc); }
 
-  // ---------- Rank helpers
   function currentRank(points){
     let idx = 0;
     for(let i=0;i<RANKS.length;i++) if(points >= RANKS[i].need) idx = i;
@@ -101,7 +87,6 @@
     return {cur, next, toNext, prog};
   }
 
-  // ---------- Router (hash-based)
   const VIEWS = ["home","calendar","rank","settings"];
   function showView(id){
     VIEWS.forEach(v=>{
@@ -111,50 +96,35 @@
       panel?.setAttribute("aria-hidden", String(!isActive));
       tab?.setAttribute("aria-selected", String(isActive));
     });
-    // focus first heading or interactive element for accessibility
     const activePanel = $("#"+id);
     const focusEl = activePanel.querySelector("h3, h2, button, input, select, [tabindex]");
     if(focusEl){ focusEl.focus({preventScroll:true}); }
-    // render corresponding screen
     if(id==="home") renderHome();
     if(id==="calendar") renderCalendar();
     if(id==="rank") renderRank();
     if(id==="settings") renderSettings();
   }
-
   function routeFromHash(){
     const hash = (location.hash || "#home").replace("#", "");
     const id = VIEWS.includes(hash) ? hash : "home";
     showView(id);
   }
-
   window.addEventListener("hashchange", routeFromHash);
-  $$(".tabs .tab").forEach(btn=>{
-    btn.addEventListener("click", ()=>{
-      unlockAudio();
-      const tab = btn.dataset.tab;
-      if(!tab) return;
-      // update hash (will trigger routeFromHash)
-      if(location.hash !== "#"+tab) location.hash = "#"+tab;
-      else routeFromHash();
-    });
-  });
+  $$(".tabs .tab").forEach(btn=> btn.addEventListener("click", ()=>{
+    unlockAudio();
+    const tab = btn.dataset.tab;
+    if(!tab) return;
+    if(location.hash !== "#"+tab) location.hash = "#"+tab;
+    else routeFromHash();
+  }));
 
-  // ---------- Home
   const cardTpl = $("#exercise-card-tpl");
   $("#reset-today").addEventListener("click", ()=>{
     const rec = state.history[todayStr];
     if(rec){ delete state.history[todayStr]; save(); renderHome(); renderCalendar(); renderRank(); }
   });
-
-  function ensureDailyRecord(dateStr){
-    state.history[dateStr] = state.history[dateStr] || { completed:{}, timeDone:{} };
-  }
-
-  function addPointsForSet(){
-    state.points += 10; // +10pt per set
-  }
-
+  function ensureDailyRecord(dateStr){ state.history[dateStr] = state.history[dateStr] || { completed:{}, timeDone:{} }; }
+  function addPointsForSet(){ state.points += 10; }
   function endOfDayStreakCheck(dateStr){
     const rec = state.history[dateStr];
     const done = rec && Object.values(rec.completed).reduce((a,b)=>a+b,0) > 0;
@@ -163,34 +133,25 @@
     const yStr = y.toISOString().slice(0,10);
     const yDone = state.history[yStr] && Object.values(state.history[yStr].completed).reduce((a,b)=>a+b,0) > 0;
     state.streak = yDone ? (state.streak||0)+1 : 1;
-    state.points += Math.max(0, 5 * (state.streak - 1)); // streak bonus
+    state.points += Math.max(0, 5 * (state.streak - 1));
   }
 
   function renderHome(){
-    const wrap = $("#today-exercises");
-    wrap.innerHTML = "";
+    const wrap = $("#today-exercises"); wrap.innerHTML = "";
     const list = exercisesForDate(todayStr);
     const rest = isRestDay(todayStr);
-
     ensureDailyRecord(todayStr);
     const rec = state.history[todayStr];
-
     if(rest){
       wrap.innerHTML = `<div class="card"><strong>휴식일</strong>로 설정되어 있습니다. 설정에서 변경할 수 있어요.</div>`;
-      $("#sets-total").textContent = "0";
-      $("#sets-done").textContent = "0";
-      return;
+      $("#sets-total").textContent = "0"; $("#sets-done").textContent = "0"; return;
     }
-
     let totalSets = 0, doneSets = 0;
-
     list.forEach(ex=>{
       const node = cardTpl.content.firstElementChild.cloneNode(true);
       $(".ex-name", node).textContent = ex.name;
-
       const tgt = targetFor(ex);
       $(".ex-target", node).textContent = ex.type==="count" ? `${tgt}회 × ${ex.sets}세트` : `${tgt}초 × ${ex.sets}세트`;
-
       const setsWrap = $(".sets", node);
       const done = rec.completed[ex.id] || 0;
       for(let i=1;i<=ex.sets;i++){
@@ -202,51 +163,37 @@
           unlockAudio();
           ensureDailyRecord(todayStr);
           const cur = state.history[todayStr].completed[ex.id] || 0;
-          if(i <= cur){
-            state.history[todayStr].completed[ex.id] = i-1;
-            state.points = Math.max(0, state.points - 10);
-          } else {
-            state.history[todayStr].completed[ex.id] = i;
-            addPointsForSet();
-          }
+          if(i <= cur){ state.history[todayStr].completed[ex.id] = i-1; state.points = Math.max(0, state.points - 10); }
+          else { state.history[todayStr].completed[ex.id] = i; addPointsForSet(); }
           save(); renderHome(); renderCalendar(); renderRank();
         });
         setsWrap.appendChild(b);
       }
+      totalSets += ex.sets; doneSets += done;
 
-      totalSets += ex.sets;
-      doneSets += done;
-
-      // Timer for time-based exercises
       if(ex.type === "time"){
-        const trow = $(".timer-row", node);
-        trow.classList.remove("hidden");
+        const trow = $(".timer-row", node); trow.classList.remove("hidden");
         const ts = $(".timer", trow);
-        let remain = tgt;
-        let timerId = null;
-
+        let remain = tgt, timerId = null;
         function updateLabel(){
           const m = String(Math.floor(remain/60)).padStart(2,"0");
           const s = String(remain%60).padStart(2,"0");
           ts.textContent = `${m}:${s}`;
         }
         updateLabel();
-
         trow.addEventListener("click", (e)=>{
           const action = e.target.dataset.action;
           if(action==="start"){
             unlockAudio();
             if(timerId) return;
             timerId = setInterval(()=>{
-              remain--;
-              updateLabel();
+              remain--; updateLabel();
               if(remain <= 0){
                 clearInterval(timerId); timerId = null; remain = 0; updateLabel();
                 beep(200, 1000); setTimeout(()=>beep(160, 700), 220);
                 const cur = state.history[todayStr].completed[ex.id] || 0;
                 if(cur < ex.sets){
-                  state.history[todayStr].completed[ex.id] = cur+1;
-                  addPointsForSet();
+                  state.history[todayStr].completed[ex.id] = cur+1; addPointsForSet();
                   save(); renderHome(); renderCalendar(); renderRank();
                 }
               }
@@ -256,46 +203,31 @@
           }
         });
       }
-
       wrap.appendChild(node);
     });
-
     $("#sets-total").textContent = totalSets;
     $("#sets-done").textContent = doneSets;
-
     if(state.lastActiveDate !== todayStr){
-      endOfDayStreakCheck(todayStr);
-      state.lastActiveDate = todayStr;
-      save();
+      endOfDayStreakCheck(todayStr); state.lastActiveDate = todayStr; save();
     }
   }
 
-  // ---------- Calendar
   let viewMonth = new Date(today.getFullYear(), today.getMonth(), 1);
   $("#prev-month").addEventListener("click", ()=>{ viewMonth.setMonth(viewMonth.getMonth()-1); renderCalendar(); });
   $("#next-month").addEventListener("click", ()=>{ viewMonth.setMonth(viewMonth.getMonth()+1); renderCalendar(); });
-
   function renderCalendar(){
     $("#month-title").textContent = `${viewMonth.getFullYear()}년 ${viewMonth.getMonth()+1}월`;
     const grid = $("#calendar-grid"); grid.innerHTML = "";
     const first = new Date(viewMonth.getFullYear(), viewMonth.getMonth(), 1);
     const startIdx = first.getDay();
     const daysInMonth = new Date(viewMonth.getFullYear(), viewMonth.getMonth()+1, 0).getDate();
-
-    // Headings
-    WEEKDAYS.forEach(d => {
-      const h = document.createElement("div");
-      h.className = "cell muted"; h.textContent = d;
-      grid.appendChild(h);
+    ["일","월","화","수","목","금","토"].forEach(d => {
+      const h = document.createElement("div"); h.className = "cell muted"; h.textContent = d; grid.appendChild(h);
     });
-
-    for(let i=0;i<startIdx;i++){
-      const empty = document.createElement("div"); empty.className = "cell muted"; empty.textContent = ""; grid.appendChild(empty);
-    }
+    for(let i=0;i<startIdx;i++){ const empty = document.createElement("div"); empty.className = "cell muted"; grid.appendChild(empty); }
     for(let d=1; d<=daysInMonth; d++){
-      const dateStr = new Date(viewMonth.getFullYear(), viewMonth.getMonth(), d).toISOString().slice(0,10);
-      const cell = document.createElement("div");
-      cell.className = "cell";
+      const dateStr = localDateStr(new Date(viewMonth.getFullYear(), viewMonth.getMonth(), d));
+      const cell = document.createElement("div"); cell.className = "cell";
       const dayDone = state.history[dateStr] && Object.values(state.history[dateStr].completed).reduce((a,b)=>a+b,0) || 0;
       const todaysExercises = exercisesForDate(dateStr).reduce((a,ex)=>a+ex.sets,0);
       if(isRestDay(dateStr)) cell.classList.add("rest");
@@ -307,18 +239,14 @@
     }
     $("#day-detail").textContent = "날짜를 탭하면 상세 기록이 보여요.";
   }
-
   function showDayDetail(dateStr){
     const list = exercisesForDate(dateStr);
     const rec = state.history[dateStr] || {completed:{}};
     const items = list.map(ex=>{
-      const c = rec.completed[ex.id]||0;
-      return `• ${ex.name} — ${c}/${ex.sets}세트`;
+      const c = rec.completed[ex.id]||0; return `• ${ex.name} — ${c}/${ex.sets}세트`;
     }).join("<br>");
     $("#day-detail").innerHTML = `<strong>${dateStr}</strong><br>${items || "기록 없음"}`;
   }
-
-  // ---------- Rank
   function renderRank(){
     const {cur, next, toNext, prog} = currentRank(state.points);
     $("#rank-name").textContent = cur.name;
@@ -327,14 +255,10 @@
     $("#rank-progress").style.width = prog + "%";
     $("#next-rank-label").textContent = (next.name===cur.name) ? "최고 랭크" : `${next.name}까지`;
   }
-
-  // ---------- Settings
   function renderSettings(){
     $("#start-date").value = state.startDate;
     const nth = daysBetween(state.startDate, todayStr)+1;
     $("#nth-day").textContent = nth;
-
-    // rest
     $$("#rest-days input[type=checkbox]").forEach(cb=>{
       cb.checked = state.restDays.includes(Number(cb.value));
       cb.onchange = ()=>{
@@ -344,34 +268,21 @@
         save(); renderHome(); renderCalendar();
       };
     });
-
-    // list
-    const list = $("#exercise-list");
-    list.innerHTML = "";
+    const list = $("#exercise-list"); list.innerHTML = "";
     state.exercises.forEach(ex=>{
-      const item = document.createElement("div");
-      item.className = "row space";
+      const item = document.createElement("div"); item.className = "row space";
       const meta = document.createElement("div");
       meta.innerHTML = `<strong>${ex.name}</strong> <span class="muted">${ex.type==="count" ? "횟수" : "시간"} · ${ex.sets}세트 · 주${ex.weeklyInc}증가 · 요일:${(ex.days||[]).map(d=>WEEKDAYS[d]).join("")}</span>`;
-      const del = document.createElement("button");
-      del.className = "ghost large-tap"; del.textContent = "삭제";
+      const del = document.createElement("button"); del.className = "ghost large-tap"; del.textContent = "삭제";
       del.addEventListener("click", ()=>{
         state.exercises = state.exercises.filter(e=>e.id!==ex.id);
-        Object.keys(state.history).forEach(k=>{
-          if(state.history[k]?.completed?.[ex.id]!=null) delete state.history[k].completed[ex.id];
-        });
+        Object.keys(state.history).forEach(k=>{ if(state.history[k]?.completed?.[ex.id]!=null) delete state.history[k].completed[ex.id]; });
         save(); renderSettings(); renderHome(); renderCalendar();
       });
-      item.appendChild(meta); item.appendChild(del);
-      list.appendChild(item);
+      item.appendChild(meta); item.appendChild(del); list.appendChild(item);
     });
   }
-
-  $("#start-date").addEventListener("change", (e)=>{
-    state.startDate = e.target.value || state.startDate;
-    save(); renderSettings(); renderHome(); renderCalendar();
-  });
-
+  $("#start-date").addEventListener("change", (e)=>{ state.startDate = e.target.value || state.startDate; save(); renderSettings(); renderHome(); renderCalendar(); });
   $("#add-exercise").addEventListener("submit", (e)=>{
     e.preventDefault();
     const fd = new FormData(e.target);
@@ -389,30 +300,22 @@
     state.exercises.push(ex); save(); e.target.reset();
     renderSettings(); renderHome(); renderCalendar();
   });
-
   $("#export-json").addEventListener("click", ()=>{
     const blob = new Blob([JSON.stringify(state,null,2)], {type:"application/json"});
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url; a.download = "oneul-workout-data.json"; a.click();
-    setTimeout(()=>URL.revokeObjectURL(url), 1000);
+    const url = URL.createObjectURL(blob); const a = document.createElement("a");
+    a.href = url; a.download = "oneul-workout-data.json"; a.click(); setTimeout(()=>URL.revokeObjectURL(url), 1000);
   });
   $("#import-json").addEventListener("change", (e)=>{
     const file = e.target.files?.[0]; if(!file) return;
     const fr = new FileReader();
     fr.onload = ()=>{
-      try{
-        const incoming = JSON.parse(fr.result);
-        state = Object.assign({}, state, incoming);
-        save(); renderSettings(); renderHome(); renderCalendar(); renderRank();
-      }catch(err){ alert("불러오기 실패: "+err.message); }
+      try{ const incoming = JSON.parse(fr.result); state = Object.assign({}, state, incoming); save(); renderSettings(); renderHome(); renderCalendar(); renderRank(); }
+      catch(err){ alert("불러오기 실패: "+err.message); }
     };
     fr.readAsText(file);
   });
 
-  // ---------- Init
   document.addEventListener("click", unlockAudio, {once:true});
-  // initial render and route
   renderHome(); renderCalendar(); renderRank(); renderSettings();
   routeFromHash();
 })();
