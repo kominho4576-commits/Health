@@ -1,0 +1,71 @@
+/* 오늘운동 PWA styles */
+:root{
+  --bg:#0b0c10;
+  --card:#14161c;
+  --fg:#e8eef2;
+  --muted:#a8b3bd;
+  --primary:#6ee7ff;
+  --accent:#9b87f5;
+  --danger:#ff6b6b;
+  --safeTop: env(safe-area-inset-top, 0px);
+  --safeBottom: env(safe-area-inset-bottom, 0px);
+}
+*{box-sizing:border-box}
+html,body{height:100%;background:var(--bg);color:var(--fg);font-family:system-ui,-apple-system,Segoe UI,Roboto,Apple SD Gothic Neo,Helvetica,Arial,sans-serif;margin:0}
+h1,h2,h3{margin:0 0 .5rem 0}
+h2{font-size:1.2rem}
+.badge{background:rgba(255,255,255,.08);padding:.2rem .5rem;border-radius:999px;font-size:.85rem}
+.muted{color:var(--muted)}
+.hidden{display:none}
+.ghost{background:transparent;border:1px solid rgba(255,255,255,.2);padding:.5rem .8rem;border-radius:.7rem;color:var(--fg)}
+.ghost.small{padding:.25rem .5rem;font-size:.85rem}
+.primary{background:linear-gradient(90deg,var(--primary),var(--accent));border:none;padding:.6rem 1rem;border-radius:.8rem;color:#001014;font-weight:700}
+button{cursor:pointer}
+
+#app-header{
+  position:sticky;top:0;z-index:10;padding:calc(var(--safeTop) + .6rem) .8rem .4rem;background:rgba(20,22,28,.8);backdrop-filter:blur(10px);
+  border-bottom:1px solid rgba(255,255,255,.08);
+}
+.title-row{display:flex;align-items:baseline;gap:.8rem}
+.title-row h1{font-size:1.3rem;letter-spacing:.02em}
+#today-label{color:var(--muted);font-size:.9rem}
+
+.tabs{display:flex;gap:.4rem;margin-top:.5rem}
+.tabs .tab{flex:1;padding:.55rem 0;border-radius:.7rem;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.03);color:var(--fg)}
+.tabs .tab.active{border-color:transparent;background:linear-gradient(90deg,rgba(110,231,255,.25),rgba(155,135,245,.25))}
+
+#content{padding:1rem .8rem calc(1.2rem + var(--safeBottom)) .8rem}
+.cards{display:grid;grid-template-columns:1fr;gap:.8rem}
+@media(min-width:560px){.cards{grid-template-columns:1fr 1fr}}
+
+.card{background:var(--card);border:1px solid rgba(255,255,255,.08);border-radius:1rem;padding:.9rem}
+.row{display:flex;gap:.6rem;align-items:center}
+.row.space{justify-content:space-between}
+.list{display:flex;flex-direction:column;gap:.5rem}
+.exercise-card .sets{display:flex;flex-wrap:wrap;gap:.4rem;margin-top:.6rem}
+.exercise-card .sets button{border-radius:.6rem;padding:.4rem .6rem;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.03)}
+.exercise-card .sets button.done{background:linear-gradient(90deg,rgba(110,231,255,.25),rgba(155,135,245,.25));border-color:transparent}
+
+.summary{display:flex;justify-content:space-between;align-items:center;margin-top:1rem;padding:.8rem;border:1px dashed rgba(255,255,255,.2);border-radius:.8rem}
+
+.calendar-header{display:flex;justify-content:space-between;align-items:center;margin:.5rem 0}
+#month-title{font-weight:700;letter-spacing:.02em}
+.calendar{display:grid;grid-template-columns:repeat(7,1fr);gap:.4rem}
+.calendar .cell{aspect-ratio:1;border:1px solid rgba(255,255,255,.08);border-radius:.6rem;display:flex;justify-content:center;align-items:center;position:relative;color:var(--muted)}
+.calendar .cell .d{position:absolute;top:.3rem;right:.35rem;font-size:.75rem}
+.calendar .cell.done{background:rgba(0,255,153,.06);color:#c9ffef;border-color:rgba(0,255,153,.25)}
+.calendar .cell.partial{background:rgba(255,230,0,.06);color:#fffadc;border-color:rgba(255,230,0,.2)}
+.calendar .cell.rest{opacity:.45}
+.day-detail{margin-top:.8rem;color:var(--muted)}
+
+.rank-card{background:var(--card);border:1px solid rgba(255,255,255,.08);border-radius:1rem;padding:1rem;margin-bottom:1rem}
+.rank-row{display:flex;gap:.6rem;align-items:center}
+.rank-row .points{margin-left:auto;color:var(--muted)}
+.progress{height:.7rem;background:rgba(255,255,255,.08);border-radius:999px;margin:.6rem 0}
+.progress-bar{height:100%;border-radius:999px;background:linear-gradient(90deg,var(--primary),var(--accent))}
+
+.settings-grid{display:grid;gap:.8rem}
+@media(min-width:720px){.settings-grid{grid-template-columns:1fr 1fr}}
+.days{display:flex;gap:.4rem;flex-wrap:wrap}
+.days.inline label{margin-right:.4rem}
+#safe-footer{height:var(--safeBottom)}
