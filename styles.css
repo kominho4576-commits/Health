@@ -93,3 +93,23 @@ input[type=file]{color:var(--muted)}
 #add-exercise input[name=name]{width:100%}
 #add-exercise .days.inline{display:flex;gap:.4rem;flex-wrap:wrap}
 #add-exercise .days.inline label{margin:0}
+
+/* Smaller delete buttons in 운동 목록 */
+#exercise-list .ghost {padding:.4rem .6rem;font-size:.85rem;border-radius:.6rem}
+#exercise-list .row.space {align-items:flex-start}
+
+/* Quest list card styling */
+.quests {background:var(--card);border:1px solid rgba(255,255,255,.08);border-radius:1rem;padding:.9rem;margin:1rem 0;list-style:disc;padding-left:1.5rem}
+.quests li {margin:.2rem 0}
+
+/* Settings > Exercise list row layout */
+.list .row.space{display:grid;grid-template-columns:1fr max-content;align-items:center;gap:.6rem}
+button.ghost.delete{padding:.5rem .8rem;border-radius:.7rem;min-width:84px}
+/* allow meta text to wrap without shrinking due to button */
+.list .row.space > div{min-width:0}
+
+/* Quests card like rank card */
+.quests-card ul{list-style:none;padding:0;margin:.4rem 0 0 0;display:flex;flex-direction:column;gap:.5rem}
+.quests-card .quest-list li{display:flex;justify-content:space-between;align-items:center;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);padding:.7rem .8rem;border-radius:.8rem}
+.quests-card .q-name{font-weight:600}
+.quests-card .q-reward{font-weight:700}
