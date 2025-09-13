@@ -1,6 +1,17 @@
-// 오늘운동 v3.4 — top navigation, rank quest v3.1
+// 오늘운동 v3.5 — fixed header with built-in top nav; click handlers fixed
 const $ = (sel, el=document) => el.querySelector(sel);
 const $$ = (sel, el=document) => Array.from(el.querySelectorAll(sel));
+
+/* Measure header height and set padding for views */
+function measureHeader(){
+  const hb = $("#appbar");
+  if(!hb) return;
+  const h = hb.offsetHeight;
+  document.documentElement.style.setProperty("--appbar-h", h+"px");
+}
+window.addEventListener('load', measureHeader);
+window.addEventListener('resize', ()=>setTimeout(measureHeader, 50));
+window.addEventListener('orientationchange', ()=>setTimeout(measureHeader, 250));
 
 const K_SETTINGS = "workout.v3.settings";
 const K_DAILY = (ds) => `workout.v3.daily.${ds}`;
@@ -87,6 +98,7 @@ const views = {
   rank: $("#view-rank"),
   settings: $("#view-settings"),
 };
+/* CLICK HANDLERS — make sure it works */
 $("#topnav").addEventListener('click', (e)=>{
   const btn=e.target.closest('button[data-view]'); if(!btn) return;
   const v=btn.dataset.view;
@@ -95,6 +107,7 @@ $("#topnav").addEventListener('click', (e)=>{
   $("#title").textContent = v==="home"?"오늘운동": v==="calendar"?"달력": v==="rank"?"랭크":"설정";
   if (v==="calendar") renderCalendar();
   if (v==="rank") renderRank();
+  window.scrollTo({top:0, behavior:'instant'});
 });
 
 const dateLabel=$("#date"), dayBadge=$("#dayBadge"), restBanner=$("#restBanner"), planList=$("#planList"), exerciseList=$("#exerciseList"), summary=$("#summary");
@@ -190,7 +203,6 @@ function renderSettings(){
   }
 }
 
-/* Rank v3.1-styled quest list */
 function renderRank(){
   const p=meta.points||0; const info=rankInfoFromPoints(p);
   $("#rankBadge").textContent=info.cur.name; $("#rankBar").style.width=info.prog+"%"; $("#rankInfo").textContent = info.next ? `다음 랭크(${info.next.name})까지 ${info.next.req - p}pt` : `최고 랭크 달성!`;
@@ -211,7 +223,7 @@ function renderRank(){
 function totalSetsDoneToday(){ let c=0; for(const ex of settings.exercises){ const arr=daily.ex?.[ex.key]?.done||[]; c+=arr.filter(Boolean).length;} return c; }
 function sumTimerDoneToday(key){ const ds=dateStr; const wIdx=settings.startDate?weekIndex(settings.startDate,ds):0; const ex=settings.exercises.find(e=>e.key===key); if(!ex) return 0; const t=targetFor(ex,wIdx); const arr=daily.ex?.[key]?.done||[]; return arr.filter(Boolean).length*t; }
 
-function renderAll(){ $("#date").textContent=fmtDateK(dateStr); $("#dayBadge") && ($("#dayBadge").textContent = settings.startDate? `${dayNumber(settings.startDate,dateStr)}일차` : ""); if (settings.startDate && isRestDay(settings.restDays,dateStr)) $("#restBanner")?.classList.remove('hidden'); else $("#restBanner")?.classList.add('hidden'); ensureDailyStructure(); renderPlan(); renderExercises(); renderSummary(); renderSettings(); updateDailyPoints(); }
+function renderAll(){ renderDate(); renderRestBanner(); ensureDailyStructure(); renderPlan(); renderExercises(); renderSummary(); renderSettings(); updateDailyPoints(); }
 
 function maybeOnboard(){ if(settings.startDate){ $("#onboard")?.classList.add('hidden'); return; } $("#onboard")?.classList.remove('hidden'); $("#onStartDate") && ($("#onStartDate").value=todayStr()); }
 $("#onConfirm")?.addEventListener('click',()=>{ const n=Math.max(1,Math.floor(+$("#onDay").value||1)); const pick=$("#onStartDate").value; let start; if(pick) start=pick; else{ const d=new Date(); d.setDate(d.getDate()-(n-1)); start=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; } settings.startDate=start; saveSettings(settings); daily=loadDaily(dateStr); ensureDailyStructure(); $("#onboard")?.classList.add('hidden'); renderAll(); });
@@ -270,9 +282,9 @@ function renderCalendar(){
     calEl.appendChild(cell);
   }
 }
-calPrev?.addEventListener('click',()=>{ calCtx.month--; if(calCtx.month<0){calCtx.month=11; calCtx.year--; } renderCalendar(); });
-calNext?.addEventListener('click',()=>{ calCtx.month++; if(calCtx.month>11){calCtx.month=0; calCtx.year++; } renderCalendar(); });
+$("#calPrev")?.addEventListener('click',()=>{ calCtx.month--; if(calCtx.month<0){calCtx.month=11; calCtx.year--; } renderCalendar(); });
+$("#calNext")?.addEventListener('click',()=>{ calCtx.month++; if(calCtx.month>11){calCtx.month=0; calCtx.year++; } renderCalendar(); });
 
-function init(){ ensureDailyStructure(); renderAll(); maybeOnboard(); renderCalendar(); renderRank(); }
+function init(){ ensureDailyStructure(); renderAll(); maybeOnboard(); renderCalendar(); renderRank(); measureHeader(); }
 if('serviceWorker' in navigator){ window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js')); }
 init();

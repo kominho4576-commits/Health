@@ -2,39 +2,29 @@
 :root{
   --bg:#0e0f12; --fg:#e9eef3; --muted:#a9b3be; --card:#16181d; --accent:#4da3ff; --good:#48d597; --warn:#ffb347; --danger:#ff6666;
   --ring: rgba(77,163,255,0.35);
+  --appbar-h: 120px; /* will be measured in JS */
 }
 html,body{margin:0;padding:0;background:var(--bg);color:var(--fg);font-family:-apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', 'Noto Sans KR', system-ui, sans-serif; overflow-x:hidden;}
 .hidden{display:none!important}
 
-/* Fixed title bar */
+/* Fixed header (title + nav in one) */
 .appbar{
   position:fixed; top:0; left:0; right:0;
-  background:linear-gradient(180deg,#0e0f12 0%, rgba(14,15,18,0.75) 100%);
+  background:linear-gradient(180deg,#0e0f12 0%, rgba(14,15,18,0.85) 100%);
   backdrop-filter:saturate(120%) blur(8px);
-  padding:8px 16px 6px;
-  display:flex; align-items:center; gap:12px;
   border-bottom:1px solid #1f2228; z-index:30;
   padding-top: calc(8px + env(safe-area-inset-top));
+  padding-bottom:10px;
 }
+.appbar-row{display:flex; align-items:center; gap:12px; padding:8px 16px 4px}
 .appbar h1{margin:0;font-size:18px}
-#date{margin-left:auto;color:var(--muted);font-variant-numeric:tabular-nums}
-
-/* NEW: Top nav (segmented) under appbar and sticky */
-.topnav{
-  position:sticky; top:calc(48px + env(safe-area-inset-top)); z-index:25;
-  display:grid; grid-template-columns:repeat(4,1fr); gap:8px;
-  padding:10px 16px 6px; max-width:760px; margin:0 auto;
-  background:linear-gradient(180deg, rgba(14,15,18,0.95) 0%, rgba(14,15,18,0.75) 100%);
-  backdrop-filter:saturate(120%) blur(8px);
-  border-bottom:1px solid #1f2228;
-}
-.topnav button{
-  border:1px solid #2a2f39; background:#101319; color:var(--fg); border-radius:12px; padding:10px 8px; font-weight:700;
-}
+.appbar .date{margin-left:auto;color:var(--muted);font-variant-numeric:tabular-nums}
+.topnav{display:grid; grid-template-columns:repeat(4,1fr); gap:8px; padding:6px 16px 8px}
+.topnav button{border:1px solid #2a2f39; background:#101319; color:var(--fg); border-radius:12px; padding:10px 8px; font-weight:700}
 .topnav button.active{outline:2px solid var(--ring)}
 
 /* Views */
-.view{display:none;max-width:760px;margin:0 auto; padding:16px; padding-top:calc(56px + 46px + env(safe-area-inset-top)); padding-bottom:32px;}
+.view{display:none;max-width:760px;margin:0 auto; padding:16px; padding-top:calc(var(--appbar-h)); padding-bottom:32px;}
 .view.active{display:block}
 
 .card{background:var(--card);border:1px solid #1f2228;border-radius:14px;padding:14px;box-shadow:0 6px 24px rgba(0,0,0,0.25);margin-bottom:16px}
@@ -103,12 +93,3 @@ button.danger.sm{padding:6px 8px;font-size:12px}
 .dot.rest{background:#6b7280}
 .dot.partial{background:#4da3ff}
 .cell .dots{display:flex;gap:4px;flex-wrap:wrap}
-
-/* Rank quest (v3.1 style) */
-.quest-list.v31{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:8px}
-.quest-list.v31 li{display:flex;align-items:center;justify-content:space-between;background:#101319;border:1px solid #2a2f39;border-radius:12px;padding:12px}
-.quest-list.v31 li .status{padding:4px 8px;border-radius:999px;border:1px solid #343a46;color:#9aa5b1}
-.quest-list.v31 li .status.done{background:#0f2a20;border-color:#1a5a3f;color:#48d597}
-
-/* Spacer (top nav replaces bottom) */
-.footspace{height: 16px}
