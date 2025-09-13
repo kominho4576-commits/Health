@@ -50,7 +50,9 @@
     history: {},
     points: 0,
     lastActiveDate: null,
-    streak: 0
+    streak: 0,
+    dailyPoints: {},
+    questsClaimed: {}
   };
 
   function load(){
@@ -121,10 +123,19 @@ $('#today-label').textContent = `${todayStr} (${WEEKDAYS[today.getDay()]})`;
   const cardTpl = $("#exercise-card-tpl");
   $("#reset-today").addEventListener("click", ()=>{
     const rec = state.history[todayStr];
-    if(rec){ delete state.history[todayStr]; save(); renderHome(); renderCalendar(); renderRank(); }
+    if(rec){
+      // subtract today's earned points (sets + streak bonus + quest rewards)
+      const earned = state.dailyPoints?.[todayStr] || 0;
+      state.points = Math.max(0, (state.points||0) - earned);
+      if(state.dailyPoints) delete state.dailyPoints[todayStr];
+      if(state.questsClaimed?.[todayStr]) delete state.questsClaimed[todayStr];
+      delete state.history[todayStr];
+      save(); renderHome(); renderCalendar(); renderRank();
+    }
   });
   function ensureDailyRecord(dateStr){ state.history[dateStr] = state.history[dateStr] || { completed:{}, timeDone:{} }; }
-  function addPointsForSet(){ state.points += 10; }
+  function addDailyPoints(dateStr, amt){ state.dailyPoints[dateStr] = (state.dailyPoints[dateStr]||0) + amt; state.points = Math.max(0, (state.points||0) + amt); }
+  function addPointsForSet(){ addDailyPoints(todayStr, 10); }
   function endOfDayStreakCheck(dateStr){
     const rec = state.history[dateStr];
     const done = rec && Object.values(rec.completed).reduce((a,b)=>a+b,0) > 0;
@@ -133,7 +144,7 @@ $('#today-label').textContent = `${todayStr} (${WEEKDAYS[today.getDay()]})`;
     const yStr = y.toISOString().slice(0,10);
     const yDone = state.history[yStr] && Object.values(state.history[yStr].completed).reduce((a,b)=>a+b,0) > 0;
     state.streak = yDone ? (state.streak||0)+1 : 1;
-    state.points += Math.max(0, 5 * (state.streak - 1));
+    const bonus = Math.max(0, 5 * (state.streak - 1)); addDailyPoints(dateStr, bonus);
   }
 
   function renderHome(){
@@ -248,12 +259,78 @@ $('#today-label').textContent = `${todayStr} (${WEEKDAYS[today.getDay()]})`;
     $("#day-detail").innerHTML = `<strong>${dateStr}</strong><br>${items || "기록 없음"}`;
   }
   function renderRank(){
-    const {cur, next, toNext, prog} = currentRank(state.points);
+    const {cur, next, toNext, prog} = currentRank(state.points||0);
     $("#rank-name").textContent = cur.name;
-    $("#points").textContent = state.points;
+    $("#points").textContent = state.points||0;
     $("#to-next").textContent = toNext;
     $("#rank-progress").style.width = prog + "%";
     $("#next-rank-label").textContent = (next.name===cur.name) ? "최고 랭크" : `${next.name}까지`;
+
+    // --- Quests ---
+    const qDate = todayStr; // quests are per-day
+    $("#quest-date-label").textContent = qDate;
+    state.questsClaimed = state.questsClaimed || {};
+    const claimed = state.questsClaimed[qDate] || {};
+    const rec = state.history[qDate] || {completed:{}};
+    const setsDone = Object.values(rec.completed).reduce((a,b)=>a+b,0);
+    const plank = (state.exercises||[]).find(e=>e.name.includes("플랭크") || e.name.toLowerCase().includes("plank"));
+    const plankTarget = plank ? targetFor(plank, qDate) : 0;
+    const plankDone = plank ? (rec.completed[plank.id]||0) > 0 : false;
+    // streak today: recompute simply — if yesterday had any done and today did something, streak>=2 etc.
+    function computeStreakUpTo(dateStr){
+      let streak=0; let d=new Date(dateStr);
+      while(true){
+        const ds = localDateStr(d);
+        const r = state.history[ds];
+        const done = r && Object.values(r.completed).reduce((a,b)=>a+b,0) > 0;
+        if(done){ streak++; d.setDate(d.getDate()-1); }
+        else break;
+      }
+      return streak;
+    }
+    const streakToday = computeStreakUpTo(qDate);
+
+    const quests = [
+      {id:'q_sets6', name:'오늘 세트 6개 완료', reward:20, met: setsDone >= 6},
+      {id:'q_streak3', name:'연속 3일 운동', reward:30, met: streakToday >= 3},
+      {id:'q_plank100', name:'플랭크 100초 이상', reward:20, met: plankDone && plankTarget >= 100},
+    ];
+
+    const list = $("#quest-list"); list.innerHTML = "";
+    quests.forEach(q=>{
+      const li = document.createElement('li');
+      const left = document.createElement('span'); left.className = 'q-name'; left.textContent = q.name;
+      li.appendChild(left);
+
+      const right = document.createElement('div'); right.className = 'status row'; right.style.gap = '.5rem';
+      const reward = document.createElement('span'); reward.className = 'q-reward badge'; reward.textContent = `+${q.reward}pt`;
+      right.appendChild(reward);
+
+      if(q.met){
+        if(claimed[q.id]){
+          const done = document.createElement('span'); done.className = 'done-badge'; done.textContent = '지급 완료';
+          right.appendChild(done);
+        } else {
+          const btn = document.createElement('button'); btn.className = 'ghost tiny'; btn.textContent = '받기';
+          btn.addEventListener('click', ()=>{
+            // award and mark claimed
+            state.questsClaimed[qDate] = state.questsClaimed[qDate] || {};
+            if(!state.questsClaimed[qDate][q.id]){
+              addDailyPoints(qDate, q.reward);
+              state.questsClaimed[qDate][q.id] = true;
+              save(); renderRank();
+            }
+          });
+          right.appendChild(btn);
+        }
+      } else {
+        const pending = document.createElement('span'); pending.className = 'muted'; pending.textContent = '진행중';
+        right.appendChild(pending);
+      }
+
+      li.appendChild(right);
+      list.appendChild(li);
+    });
   }
   function renderSettings(){
     $("#start-date").value = state.startDate;
