@@ -1,4 +1,4 @@
-// 오늘운동 PWA - SPA + LocalStorage
+// 오늘운동 PWA — mobile-first SPA with hash routing
 (function(){
   const $ = (sel, el=document)=> el.querySelector(sel);
   const $$ = (sel, el=document)=> Array.from(el.querySelectorAll(sel));
@@ -49,18 +49,15 @@
       {id: crypto.randomUUID(), name:"스쿼트", type:"count", sets:3, base:15, weeklyInc:5, days:[2,4]},
       {id: crypto.randomUUID(), name:"플랭크", type:"time", sets:2, base:30, weeklyInc:5, days:[1,2,3,4,5]},
     ],
-    history: {}, // 'YYYY-MM-DD': { completed: {exId: n}, timeDone: {exId: [seconds...] } }
+    history: {},
     points: 0,
     lastActiveDate: null,
     streak: 0
   };
 
   function load(){
-    try {
-      return JSON.parse(localStorage.getItem("ow_state")) || initialState;
-    } catch(e){
-      return initialState;
-    }
+    try { return JSON.parse(localStorage.getItem("ow_state")) || initialState; }
+    catch(e){ return initialState; }
   }
   function save(){
     localStorage.setItem("ow_state", JSON.stringify(state));
@@ -95,9 +92,7 @@
   // ---------- Rank helpers
   function currentRank(points){
     let idx = 0;
-    for(let i=0;i<RANKS.length;i++){
-      if(points >= RANKS[i].need) idx = i;
-    }
+    for(let i=0;i<RANKS.length;i++) if(points >= RANKS[i].need) idx = i;
     const cur = RANKS[idx];
     const next = RANKS[idx+1] || RANKS[idx];
     const toNext = Math.max(0, next.need - points);
@@ -106,19 +101,42 @@
     return {cur, next, toNext, prog};
   }
 
-  // ---------- Tabs
+  // ---------- Router (hash-based)
+  const VIEWS = ["home","calendar","rank","settings"];
+  function showView(id){
+    VIEWS.forEach(v=>{
+      const isActive = (v===id);
+      const panel = $("#"+v);
+      const tab = $("#tab-"+v);
+      panel?.setAttribute("aria-hidden", String(!isActive));
+      tab?.setAttribute("aria-selected", String(isActive));
+    });
+    // focus first heading or interactive element for accessibility
+    const activePanel = $("#"+id);
+    const focusEl = activePanel.querySelector("h3, h2, button, input, select, [tabindex]");
+    if(focusEl){ focusEl.focus({preventScroll:true}); }
+    // render corresponding screen
+    if(id==="home") renderHome();
+    if(id==="calendar") renderCalendar();
+    if(id==="rank") renderRank();
+    if(id==="settings") renderSettings();
+  }
+
+  function routeFromHash(){
+    const hash = (location.hash || "#home").replace("#", "");
+    const id = VIEWS.includes(hash) ? hash : "home";
+    showView(id);
+  }
+
+  window.addEventListener("hashchange", routeFromHash);
   $$(".tabs .tab").forEach(btn=>{
     btn.addEventListener("click", ()=>{
       unlockAudio();
-      $$(".tabs .tab").forEach(b=>b.classList.remove("active"));
-      btn.classList.add("active");
       const tab = btn.dataset.tab;
-      $$(".view").forEach(v=>v.classList.remove("active"));
-      $("#"+tab).classList.add("active");
-      if(tab==="calendar") renderCalendar();
-      if(tab==="rank") renderRank();
-      if(tab==="settings") renderSettings();
-      if(tab==="home") renderHome();
+      if(!tab) return;
+      // update hash (will trigger routeFromHash)
+      if(location.hash !== "#"+tab) location.hash = "#"+tab;
+      else routeFromHash();
     });
   });
 
@@ -134,23 +152,18 @@
   }
 
   function addPointsForSet(){
-    // +10pt per set; streak bonus handled daily
-    state.points += 10;
+    state.points += 10; // +10pt per set
   }
 
   function endOfDayStreakCheck(dateStr){
-    // If at least one set completed today, update streak continuous from yesterday
     const rec = state.history[dateStr];
     const done = rec && Object.values(rec.completed).reduce((a,b)=>a+b,0) > 0;
     if(!done) return;
-
     const y = new Date(dateStr); y.setDate(y.getDate()-1);
     const yStr = y.toISOString().slice(0,10);
     const yDone = state.history[yStr] && Object.values(state.history[yStr].completed).reduce((a,b)=>a+b,0) > 0;
-
     state.streak = yDone ? (state.streak||0)+1 : 1;
-    // streak bonus: 5 * (streak-1)
-    state.points += Math.max(0, 5 * (state.streak - 1));
+    state.points += Math.max(0, 5 * (state.streak - 1)); // streak bonus
   }
 
   function renderHome(){
@@ -182,6 +195,7 @@
       const done = rec.completed[ex.id] || 0;
       for(let i=1;i<=ex.sets;i++){
         const b = document.createElement("button");
+        b.className = "large-tap";
         b.textContent = `세트 ${i}`;
         if(i <= done) b.classList.add("done");
         b.addEventListener("click", ()=>{
@@ -189,9 +203,8 @@
           ensureDailyRecord(todayStr);
           const cur = state.history[todayStr].completed[ex.id] || 0;
           if(i <= cur){
-            // uncheck this and after
             state.history[todayStr].completed[ex.id] = i-1;
-            state.points = Math.max(0, state.points - 10); // revert points if unchecking
+            state.points = Math.max(0, state.points - 10);
           } else {
             state.history[todayStr].completed[ex.id] = i;
             addPointsForSet();
@@ -204,7 +217,7 @@
       totalSets += ex.sets;
       doneSets += done;
 
-      // Timer UI for time-based exercises
+      // Timer for time-based exercises
       if(ex.type === "time"){
         const trow = $(".timer-row", node);
         trow.classList.remove("hidden");
@@ -230,7 +243,6 @@
               if(remain <= 0){
                 clearInterval(timerId); timerId = null; remain = 0; updateLabel();
                 beep(200, 1000); setTimeout(()=>beep(160, 700), 220);
-                // auto mark one set if any left unchecked
                 const cur = state.history[todayStr].completed[ex.id] || 0;
                 if(cur < ex.sets){
                   state.history[todayStr].completed[ex.id] = cur+1;
@@ -251,7 +263,6 @@
     $("#sets-total").textContent = totalSets;
     $("#sets-done").textContent = doneSets;
 
-    // End-of-day streak bonus application: apply once per day on first open after midnight
     if(state.lastActiveDate !== todayStr){
       endOfDayStreakCheck(todayStr);
       state.lastActiveDate = todayStr;
@@ -326,12 +337,12 @@
     // rest
     $$("#rest-days input[type=checkbox]").forEach(cb=>{
       cb.checked = state.restDays.includes(Number(cb.value));
-      cb.addEventListener("change", ()=>{
+      cb.onchange = ()=>{
         const v = Number(cb.value);
         if(cb.checked) { if(!state.restDays.includes(v)) state.restDays.push(v); }
         else { state.restDays = state.restDays.filter(x=>x!==v); }
         save(); renderHome(); renderCalendar();
-      });
+      };
     });
 
     // list
@@ -343,10 +354,9 @@
       const meta = document.createElement("div");
       meta.innerHTML = `<strong>${ex.name}</strong> <span class="muted">${ex.type==="count" ? "횟수" : "시간"} · ${ex.sets}세트 · 주${ex.weeklyInc}증가 · 요일:${(ex.days||[]).map(d=>WEEKDAYS[d]).join("")}</span>`;
       const del = document.createElement("button");
-      del.className = "ghost"; del.textContent = "삭제";
+      del.className = "ghost large-tap"; del.textContent = "삭제";
       del.addEventListener("click", ()=>{
         state.exercises = state.exercises.filter(e=>e.id!==ex.id);
-        // purge history of this id
         Object.keys(state.history).forEach(k=>{
           if(state.history[k]?.completed?.[ex.id]!=null) delete state.history[k].completed[ex.id];
         });
@@ -368,7 +378,7 @@
     const days = fd.getAll("days").map(Number);
     const ex = {
       id: crypto.randomUUID(),
-      name: fd.get("name").trim(),
+      name: (fd.get("name")||"").trim(),
       type: fd.get("type"),
       sets: Number(fd.get("sets"))||1,
       base: Number(fd.get("base"))||1,
@@ -402,5 +412,7 @@
 
   // ---------- Init
   document.addEventListener("click", unlockAudio, {once:true});
+  // initial render and route
   renderHome(); renderCalendar(); renderRank(); renderSettings();
+  routeFromHash();
 })();

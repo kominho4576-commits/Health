@@ -1,33 +1,30 @@
-# 오늘운동 — Routed PWA 버전
+# 오늘운동 — iPhone용 PWA 운동 관리 앱
 
-각 화면(홈/달력/랭크/설정)을 **분리된 모듈 + HTML 파셜**로 구성하고, 상단 탭 클릭 → **Hash Router**가 해당 화면을 로드합니다.  
-오프라인 사용을 위해 Service Worker에서 각 `views/*.html`과 `js/*.js`를 캐시에 포함했습니다.
+- 오프라인 동작 (Service Worker)
+- SPA 구조 (탭: 홈/달력/랭크/설정)
+- LocalStorage에 기록/설정 저장
+- 요일별 루틴, 주간 증가량 자동 계산
+- 랭크 포인트 & 스트릭 보너스
+- 타이머(플랭크 등) → 완료 시 자동 세트 체크 + 비프
 
-## 구조
+## 로컬 실행
+1) 정적 서버로 열어주세요(예: VSCode Live Server / `python -m http.server`)
+2) `http://localhost:8000` 로 접속
+
+## GitHub Pages 배포
+- 저장소 루트에 본 파일들을 커밋/푸시 → Pages(Branch: main, /root) 설정
+
+## 파일 구조
 ```
 index.html
 styles.css
+app.js
 sw.js
 manifest.webmanifest
-views/
-  home.html
-  calendar.html
-  rank.html
-  settings.html
-js/
-  state.js      # 전역 상태/유틸
-  home.js       # 홈 화면 로직
-  calendar.js   # 달력 화면 로직
-  rank.js       # 랭크 화면 로직
-  settings.js   # 설정 화면 로직
 icons/
-  icon-192.png
-  icon-512.png
+  ├─ icon-192.png
+  └─ icon-512.png
 ```
 
-## 배포 (GitHub Pages)
-저장소 루트에 업로드 → Settings → Pages → Branch: main / folder: /(root)
-
-## 라우팅
-- 초기: `#/home`
-- 탭: `#/home`, `#/calendar`, `#/rank`, `#/settings`
+---
+최초 로드시 기본 운동 예시 데이터가 채워집니다. 설정 탭에서 시작일/휴식요일/운동을 원하는대로 바꾸세요.

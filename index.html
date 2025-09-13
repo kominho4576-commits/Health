@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <title>오늘운동</title>
 
+  <!-- iOS PWA -->
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="오늘운동">
@@ -12,30 +13,159 @@
 
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="stylesheet" href="styles.css" />
-  <script defer src="js/state.js"></script>
-  <script defer src="js/home.js"></script>
-  <script defer src="js/calendar.js"></script>
-  <script defer src="js/rank.js"></script>
-  <script defer src="js/settings.js"></script>
-  <script defer src="js/router.js"></script>
+  <script defer src="app.js"></script>
 </head>
 <body>
-  <header id="app-header">
+  <header id="app-header" role="banner">
     <div class="title-row">
       <h1>오늘운동</h1>
-      <div id="today-label"></div>
+      <div id="today-label" class="muted"></div>
     </div>
-    <nav class="tabs" role="tablist">
-      <a class="tab" data-route="#/home" href="#/home" aria-selected="false">홈</a>
-      <a class="tab" data-route="#/calendar" href="#/calendar" aria-selected="false">달력</a>
-      <a class="tab" data-route="#/rank" href="#/rank" aria-selected="false">랭크</a>
-      <a class="tab" data-route="#/settings" href="#/settings" aria-selected="false">설정</a>
+    <nav class="tabs" role="tablist" aria-label="주요 화면 전환">
+      <button class="tab" data-tab="home" id="tab-home" role="tab" aria-controls="home" aria-selected="true">홈</button>
+      <button class="tab" data-tab="calendar" id="tab-calendar" role="tab" aria-controls="calendar" aria-selected="false">달력</button>
+      <button class="tab" data-tab="rank" id="tab-rank" role="tab" aria-controls="rank" aria-selected="false">랭크</button>
+      <button class="tab" data-tab="settings" id="tab-settings" role="tab" aria-controls="settings" aria-selected="false">설정</button>
     </nav>
   </header>
 
-  <main id="content" aria-live="polite"></main>
+  <main id="content" role="main">
+    <!-- Home -->
+    <section id="home" class="view" role="tabpanel" aria-labelledby="tab-home" aria-hidden="false">
+      <h2 class="visually-hidden">홈</h2>
+      <h3>오늘 운동</h3>
+      <div id="today-exercises" class="cards"></div>
+      <div id="today-summary" class="summary">
+        <span id="sets-done">0</span>/<span id="sets-total">0</span> 세트 완료
+        <button id="reset-today" class="ghost">오늘 기록 초기화</button>
+      </div>
+    </section>
 
-  <footer id="safe-footer"></footer>
+    <!-- Calendar -->
+    <section id="calendar" class="view" role="tabpanel" aria-labelledby="tab-calendar" aria-hidden="true">
+      <h2 class="visually-hidden">달력</h2>
+      <div class="calendar-header">
+        <button id="prev-month" class="ghost large-tap" aria-label="이전 달">◀</button>
+        <div id="month-title"></div>
+        <button id="next-month" class="ghost large-tap" aria-label="다음 달">▶</button>
+      </div>
+      <div id="calendar-grid" class="calendar" aria-label="월간 달력"></div>
+      <div id="day-detail" class="day-detail"></div>
+    </section>
+
+    <!-- Rank -->
+    <section id="rank" class="view" role="tabpanel" aria-labelledby="tab-rank" aria-hidden="true">
+      <h2 class="visually-hidden">랭크</h2>
+      <div class="rank-card">
+        <div class="rank-row">
+          <span>현재 랭크:</span>
+          <strong id="rank-name">Bronze</strong>
+          <span class="points"><span id="points">0</span> pt</span>
+        </div>
+        <div class="progress" aria-label="랭크 진행도">
+          <div id="rank-progress" class="progress-bar" style="width:0%"></div>
+        </div>
+        <div class="rank-next"><span id="next-rank-label">다음 랭크까지</span> <strong id="to-next">0</strong> pt</div>
+      </div>
+
+      <h3>퀘스트(예)</h3>
+      <ul class="quests">
+        <li>오늘 세트 6개 완료 (+20pt)</li>
+        <li>연속 3일 운동 (+30pt)</li>
+        <li>플랭크 100초 이상 (+20pt)</li>
+      </ul>
+    </section>
+
+    <!-- Settings -->
+    <section id="settings" class="view" role="tabpanel" aria-labelledby="tab-settings" aria-hidden="true">
+      <h2 class="visually-hidden">설정</h2>
+      <div class="settings-grid">
+        <div class="card">
+          <h3>시작 날짜</h3>
+          <input type="date" id="start-date" inputmode="none"/>
+          <div class="muted">현재 <span id="nth-day">0</span>일차</div>
+        </div>
+
+        <div class="card">
+          <h3>휴식 요일</h3>
+          <div id="rest-days" class="days">
+            <label><input type="checkbox" value="0">일</label>
+            <label><input type="checkbox" value="1">월</label>
+            <label><input type="checkbox" value="2">화</label>
+            <label><input type="checkbox" value="3">수</label>
+            <label><input type="checkbox" value="4">목</label>
+            <label><input type="checkbox" value="5">금</label>
+            <label><input type="checkbox" value="6">토</label>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3>운동 추가</h3>
+          <form id="add-exercise">
+            <input required type="text" name="name" placeholder="운동 이름 (예: 푸쉬업)" autocomplete="off" />
+            <div class="row">
+              <label>타입</label>
+              <select name="type">
+                <option value="count">횟수</option>
+                <option value="time">시간(초)</option>
+              </select>
+            </div>
+            <div class="row">
+              <label>세트 수</label>
+              <input type="number" name="sets" min="1" max="10" value="3" inputmode="numeric"/>
+            </div>
+            <div class="row">
+              <label>기본 값</label>
+              <input type="number" name="base" min="1" value="10" inputmode="numeric"/>
+            </div>
+            <div class="row">
+              <label>주간 증가량</label>
+              <input type="number" name="weeklyInc" min="0" value="2" inputmode="numeric"/>
+            </div>
+            <div class="row">
+              <label>요일</label>
+              <div class="days inline">
+                <label><input type="checkbox" name="days" value="1" checked>월</label>
+                <label><input type="checkbox" name="days" value="2" checked>화</label>
+                <label><input type="checkbox" name="days" value="3" checked>수</label>
+                <label><input type="checkbox" name="days" value="4" checked>목</label>
+                <label><input type="checkbox" name="days" value="5" checked>금</label>
+              </div>
+            </div>
+            <button class="primary large-tap" type="submit">추가</button>
+          </form>
+        </div>
+
+        <div class="card">
+          <h3>운동 목록</h3>
+          <div id="exercise-list" class="list"></div>
+        </div>
+
+        <div class="card">
+          <h3>데이터 관리</h3>
+          <button id="export-json" class="ghost large-tap">JSON 내보내기</button>
+          <input type="file" id="import-json" accept="application/json" />
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer id="safe-footer" aria-hidden="true"></footer>
+
+  <template id="exercise-card-tpl">
+    <div class="card exercise-card">
+      <div class="row space">
+        <strong class="ex-name"></strong>
+        <span class="ex-target badge"></span>
+      </div>
+      <div class="sets"></div>
+      <div class="timer-row hidden">
+        <button class="ghost small large-tap" data-action="start">⏱️ 시작</button>
+        <button class="ghost small large-tap" data-action="stop">정지</button>
+        <span class="timer">00:00</span>
+      </div>
+    </div>
+  </template>
 
   <script>
     if ('serviceWorker' in navigator) {
