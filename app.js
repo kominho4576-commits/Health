@@ -1,1 +1,0 @@
-console.log('오늘운동 PWA loaded');
