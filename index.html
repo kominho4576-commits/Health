@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <title>오늘운동</title>
 
-  <!-- iOS PWA -->
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="오늘운동">
@@ -13,7 +12,12 @@
 
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="stylesheet" href="styles.css" />
-  <script defer src="app.js"></script>
+  <script defer src="js/state.js"></script>
+  <script defer src="js/home.js"></script>
+  <script defer src="js/calendar.js"></script>
+  <script defer src="js/rank.js"></script>
+  <script defer src="js/settings.js"></script>
+  <script defer src="js/router.js"></script>
 </head>
 <body>
   <header id="app-header">
@@ -22,152 +26,18 @@
       <div id="today-label"></div>
     </div>
     <nav class="tabs" role="tablist">
-      <button class="tab active" data-tab="home" aria-selected="true">홈</button>
-      <button class="tab" data-tab="calendar" aria-selected="false">달력</button>
-      <button class="tab" data-tab="rank" aria-selected="false">랭크</button>
-      <button class="tab" data-tab="settings" aria-selected="false">설정</button>
+      <a class="tab" data-route="#/home" href="#/home" aria-selected="false">홈</a>
+      <a class="tab" data-route="#/calendar" href="#/calendar" aria-selected="false">달력</a>
+      <a class="tab" data-route="#/rank" href="#/rank" aria-selected="false">랭크</a>
+      <a class="tab" data-route="#/settings" href="#/settings" aria-selected="false">설정</a>
     </nav>
   </header>
 
-  <main id="content">
-    <!-- Home -->
-    <section id="home" class="view active" aria-labelledby="홈">
-      <h2>오늘 운동</h2>
-      <div id="today-exercises" class="cards"></div>
-      <div id="today-summary" class="summary">
-        <span id="sets-done">0</span>/<span id="sets-total">0</span> 세트 완료
-        <button id="reset-today" class="ghost">오늘 기록 초기화</button>
-      </div>
-    </section>
-
-    <!-- Calendar -->
-    <section id="calendar" class="view" aria-labelledby="달력">
-      <h2>달력</h2>
-      <div class="calendar-header">
-        <button id="prev-month" class="ghost">◀</button>
-        <div id="month-title"></div>
-        <button id="next-month" class="ghost">▶</button>
-      </div>
-      <div id="calendar-grid" class="calendar"></div>
-      <div id="day-detail" class="day-detail"></div>
-    </section>
-
-    <!-- Rank -->
-    <section id="rank" class="view" aria-labelledby="랭크">
-      <h2>랭크 / 퀘스트</h2>
-      <div class="rank-card">
-        <div class="rank-row">
-          <span>현재 랭크:</span>
-          <strong id="rank-name">Bronze</strong>
-          <span class="points"><span id="points">0</span> pt</span>
-        </div>
-        <div class="progress">
-          <div id="rank-progress" class="progress-bar" style="width:0%"></div>
-        </div>
-        <div class="rank-next"><span id="next-rank-label">다음 랭크까지</span> <strong id="to-next">0</strong> pt</div>
-      </div>
-
-      <h3>퀘스트(예)</h3>
-      <ul class="quests">
-        <li>오늘 세트 6개 완료 (+20pt)</li>
-        <li>연속 3일 운동 (+30pt)</li>
-        <li>플랭크 100초 이상 (+20pt)</li>
-      </ul>
-    </section>
-
-    <!-- Settings -->
-    <section id="settings" class="view" aria-labelledby="설정">
-      <h2>설정</h2>
-      <div class="settings-grid">
-        <div class="card">
-          <h3>시작 날짜</h3>
-          <input type="date" id="start-date"/>
-          <div class="muted">현재 <span id="nth-day">0</span>일차</div>
-        </div>
-
-        <div class="card">
-          <h3>휴식 요일</h3>
-          <div id="rest-days" class="days">
-            <label><input type="checkbox" value="0">일</label>
-            <label><input type="checkbox" value="1">월</label>
-            <label><input type="checkbox" value="2">화</label>
-            <label><input type="checkbox" value="3">수</label>
-            <label><input type="checkbox" value="4">목</label>
-            <label><input type="checkbox" value="5">금</label>
-            <label><input type="checkbox" value="6">토</label>
-          </div>
-        </div>
-
-        <div class="card">
-          <h3>운동 추가</h3>
-          <form id="add-exercise">
-            <input required type="text" name="name" placeholder="운동 이름 (예: 푸쉬업)" />
-            <div class="row">
-              <label>타입</label>
-              <select name="type">
-                <option value="count">횟수</option>
-                <option value="time">시간(초)</option>
-              </select>
-            </div>
-            <div class="row">
-              <label>세트 수</label>
-              <input type="number" name="sets" min="1" max="10" value="3" />
-            </div>
-            <div class="row">
-              <label>기본 값</label>
-              <input type="number" name="base" min="1" value="10" />
-            </div>
-            <div class="row">
-              <label>주간 증가량</label>
-              <input type="number" name="weeklyInc" min="0" value="2" />
-            </div>
-            <div class="row">
-              <label>요일</label>
-              <div class="days inline">
-                <label><input type="checkbox" name="days" value="1" checked>월</label>
-                <label><input type="checkbox" name="days" value="2" checked>화</label>
-                <label><input type="checkbox" name="days" value="3" checked>수</label>
-                <label><input type="checkbox" name="days" value="4" checked>목</label>
-                <label><input type="checkbox" name="days" value="5" checked>금</label>
-              </div>
-            </div>
-            <button class="primary" type="submit">추가</button>
-          </form>
-        </div>
-
-        <div class="card">
-          <h3>운동 목록</h3>
-          <div id="exercise-list" class="list"></div>
-        </div>
-
-        <div class="card">
-          <h3>데이터 관리</h3>
-          <button id="export-json" class="ghost">JSON 내보내기</button>
-          <input type="file" id="import-json" accept="application/json" />
-        </div>
-      </div>
-    </section>
-  </main>
+  <main id="content" aria-live="polite"></main>
 
   <footer id="safe-footer"></footer>
 
-  <template id="exercise-card-tpl">
-    <div class="card exercise-card">
-      <div class="row space">
-        <strong class="ex-name"></strong>
-        <span class="ex-target badge"></span>
-      </div>
-      <div class="sets"></div>
-      <div class="timer-row hidden">
-        <button class="ghost small" data-action="start">⏱️ 시작</button>
-        <button class="ghost small" data-action="stop">정지</button>
-        <span class="timer">00:00</span>
-      </div>
-    </div>
-  </template>
-
   <script>
-    // Register Service Worker
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js'));
     }

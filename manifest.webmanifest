@@ -1,7 +1,7 @@
 {
   "name": "오늘운동",
   "short_name": "오늘운동",
-  "start_url": ".",
+  "start_url": ".#/home",
   "display": "standalone",
   "background_color": "#0b0c10",
   "theme_color": "#0b0c10",
