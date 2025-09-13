@@ -1,0 +1,100 @@
+*:focus{outline:2px solid rgba(10,132,255,.6); outline-offset:2px}
+:root{
+  --bg:#0b1020; --panel:#0d1425; --line:#1f2937; --sub:#9ca3af; --text:#e5e7eb;
+  --tint:#0a84ff; --tint2:#64d2ff; --green:#30d158; --yellow:#ffd60a; --red:#ff453a;
+  --radius:14px; --shadow:0 8px 24px #0009;
+}
+html,body{height:100%}
+body{
+  margin:0; font-family:-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo','Noto Sans KR',system-ui,sans-serif;
+  color:var(--text); background:radial-gradient(1200px 800px at 20% -10%, #0f1730, #0b1020 55%) fixed;
+}
+
+/* Large title navbar */
+.nav-large{position:fixed;top:0;left:0;right:0;z-index:999;backdrop-filter:blur(14px) saturate(1.2);
+  background:linear-gradient(180deg, rgba(8,14,28,.65), rgba(8,14,28,.25) 60%, transparent); padding: env(safe-area-inset-top) 16px 6px 16px; border-bottom:1px solid var(--line);}
+.nav-title{font-weight:800;font-size:28px}
+.nav-subtitle{color:var(--sub);font-size:12px;margin-top:4px}
+
+.body-offset-ios{padding-top:86px;padding-bottom:calc(96px + env(safe-area-inset-bottom))}
+
+/* Screen container — only one visible */
+.screens{max-width:760px;margin:0 auto;padding:12px; padding-bottom:calc(96px + env(safe-area-inset-bottom))}
+.screen{display:none; animation:fadeIn .18s ease-out; min-height:calc(100vh - 170px); padding-bottom:calc(120px + env(safe-area-inset-bottom))}
+.screen.active{display:block}
+@keyframes fadeIn{from{opacity:.0;transform:translateY(4px)} to{opacity:1;transform:none}}
+
+/* iOS Grouped list style */
+.group{background:transparent;margin:12px 0}
+.cell{background:linear-gradient(180deg, rgba(17,24,39,.95), rgba(11,16,32,.9));
+  border:1px solid var(--line);border-radius:12px;box-shadow:var(--shadow);padding:12px;overflow:hidden}
+.cell.header{border-bottom-left-radius:12px;border-bottom-right-radius:12px;margin-bottom:6px;font-weight:700}
+.cell.no-padding{padding:0}
+.title-md{font-weight:700}
+.subtle{color:var(--sub);font-size:13px}
+.footnote{color:var(--sub);font-size:12px}
+
+/* Buttons */
+.ios-btn{border:1px solid #2b3447;background:#141b2d;color:#dbe6ff;border-radius:12px;padding:8px 12px;cursor:pointer}
+.ios-btn.ghost{background:transparent}
+.primary{border:0;padding:12px;border-radius:14px;cursor:pointer;font-weight:800;box-shadow:0 6px 18px #0a84ff35;background:linear-gradient(90deg,var(--tint),var(--tint2));color:#08121c}
+
+/* Chips & sets */
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{padding:8px 12px;border-radius:12px;border:1px solid #2b3447;background:#111a2c;color:#cbd5e1;cursor:pointer}
+.chip.active{background:linear-gradient(90deg,var(--tint),var(--tint2));color:#08121c;border-color:transparent;font-weight:800}
+.sets{display:flex;flex-wrap:wrap;gap:8px}
+.set-chip{border:1px solid #2b3447;border-radius:12px;padding:8px 12px;font-size:13px;cursor:pointer;background:#111a2c;color:#cbd5e1}
+.set-chip.done{background:linear-gradient(90deg,var(--tint),var(--tint2));color:#08121c;border-color:transparent;font-weight:800}
+
+/* Timer */
+.timer-row{display:flex;align-items:center;gap:8px;margin-top:6px}
+.timer-btn{border:1px solid #2b3447;background:#141b2d;color:#e5e7eb;border-radius:12px;padding:8px 10px;cursor:pointer}
+.time-left{font-variant-numeric:tabular-nums;letter-spacing:.5px}
+
+/* Summary */
+.row-between{display:flex;align-items:center;justify-content:space-between}
+.row{display:flex;align-items:center}
+.gap{gap:10px}
+.full{width:100%}
+.stack{display:grid;gap:12px}
+.reset-btn{border:1px dashed #3a465e;background:transparent;color:var(--red);border-radius:12px;padding:8px 10px;cursor:pointer}
+
+/* Progress */
+.progress{height:8px;width:42%;background:#0d1425;border-radius:99px;overflow:hidden;border:1px solid var(--line)}
+.progress .bar{height:100%;background:linear-gradient(90deg,var(--tint),var(--tint2));width:0%}
+.badge{border:1px solid #31415b;padding:4px 8px;border-radius:999px;font-size:12px}
+.badge.good{border-color:transparent;background:linear-gradient(90deg,var(--tint),var(--tint2));color:#08121c;font-weight:700}
+
+/* Calendar */
+.calendar-week-head{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;color:#9ca3af;text-align:center}
+.calendar-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;padding:8px}
+.cell-date{aspect-ratio:1/1;border-radius:12px;border:1px solid var(--line);padding:6px;position:relative;cursor:pointer;background:#0b1020}
+.cell-date .num{position:absolute;top:6px;right:8px;font-size:12px;color:#9ca3af}
+.cell-date.done{background:#062b18;border-color:#0a3b26}
+.cell-date.partial{background:#2a2407;border-color:#705100}
+.cell-date.rest{opacity:.5}
+.cal-title{font-weight:800}
+#calendar-detail pre{white-space:pre-wrap}
+
+/* Forms */
+.form-grid{display:grid;grid-template-columns:1fr;gap:10px}
+@media(min-width:900px){.form-grid{grid-template-columns:1fr 1fr}}
+.form-grid .span-2{grid-column:1 / span 1}
+@media(min-width:900px){.form-grid .span-2{grid-column:1 / span 2}}
+.form-grid .span-2{grid-column:1 / span 2}
+input,select{width:100%;padding:12px;border-radius:12px;border:1px solid #2b3447;background:#0e1527;color:#e5e7eb;min-height:44px;box-sizing:border-box;-webkit-appearance:none;appearance:none}
+
+/* Bottom tabbar */
+.tabbar{position:fixed;left:0;right:0;bottom:0;z-index:999;display:flex;justify-content:space-around;align-items:center;gap:6px;padding:8px 8px calc(8px + env(safe-area-inset-bottom));backdrop-filter:blur(16px) saturate(1.2);background:linear-gradient(180deg, rgba(8,14,28,.25), rgba(8,14,28,.65));border-top:1px solid var(--line)}
+.tabbar-btn{flex:1 1 0;display:flex;flex-direction:column;align-items:center;gap:4px;padding:8px 6px;border-radius:12px;border:0;background:transparent;color:#c9d9ff;font-size:11px}
+.tabbar-btn .ico{width:22px;height:22px;display:inline-block;background:currentColor;-webkit-mask-size:contain;mask-size:contain;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat}
+.tabbar-btn .lbl{line-height:1}
+.tabbar-btn.active{color:var(--tint)}
+[data-i="home"]{-webkit-mask-image:url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="black" d="M12 3 3 10v11h6v-6h6v6h6V10z"/></svg>'); mask-image:url('data:image/svg+xml;utf8,<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\"><path fill=\"black\" d=\"M12 3 3 10v11h6v-6h6v6h6V10z\"/></svg>');}
+[data-i="calendar"]{-webkit-mask-image:url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="black" d="M7 2h2v2h6V2h2v2h3v18H4V4h3V2zm13 7H4v11h16V9z"/></svg>'); mask-image:url('data:image/svg+xml;utf8,<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\"><path fill=\"black\" d=\"M7 2h2v2h6V2h2v2h3v18H4V4h3V2zm13 7H4v11h16V9z\"/></svg>');}
+[data-i="trophy"]{-webkit-mask-image:url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="black" d="M6 2h12v3h3v4a5 5 0 0 1-5 5 6 6 0 0 1-3 2.7V19h4v3H7v-3h4v-2.3A6 6 0 0 1 8 14a5 5 0 0 1-5-5V5h3V2zm13 5v2a3 3 0 0 1-3 3V7h3zM5 7v2a3 3 0 0 0 3 3V7H5z"/></svg>'); mask-image:url('data:image/svg+xml;utf8,<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\"><path fill=\"black\" d=\"M6 2h12v3h3v4a5 5 0 0 1-5 5 6 6 0 0 1-3 2.7V19h4v3H7v-3h4v-2.3A6 6 0 0 1 8 14a5 5 0 0 1-5-5V5h3V2zm13 5v2a3 3 0 0 1-3 3V7h3zM5 7v2a3 3 0 0 0 3 3V7H5z\"/></svg>');}
+[data-i="gear"]{-webkit-mask-image:url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="black" d="M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8zm-9 4a9 9 0 0 1 .2-1.9l2.2-.3.8-2-1.5-1.7A9.1 9.1 0 0 1 6 2.8L7.7 4l2-.8.3-2.2A9 9 0 0 1 14 1l.3 2.2 2 .8L17.9 2.8a9.1 9.1 0 0 1 3.3 3.3L19.5 8l.8 2 2.2.3a9 9 0 0 1 0 4l-2.2.3-.8 2 1.7 1.9a9.1 9.1 0 0 1-3.3 3.3L16.3 20l-2 .8L14 23a9 9 0 0 1-4 0l-.3-2.2-2-.8L6.1 21.2A9.1 9.1 0 0 1 2.8 18l1.7-1.9-.8-2L1.5 13A9 9 0 0 1 3 12z"/></svg>'); mask-image:url('data:image/svg+xml;utf8,<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\"><path fill=\"black\" d=\"M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8zm-9 4a9 9 0 0 1 .2-1.9l2.2-.3.8-2-1.5-1.7A9.1 9.1 0 0 1 6 2.8L7.7 4l2-.8.3-2.2A9 9 0 0 1 14 1l.3 2.2 2 .8L17.9 2.8a9.1 9.1 0 0 1 3.3 3.3L19.5 8l.8 2 2.2.3a9 9 0 0 1 0 4l-2.2.3-.8 2 1.7 1.9a9.1 9.1 0 0 1-3.3 3.3L16.3 20l-2 .8L14 23a9 9 0 0 1-4 0l-.3-2.2-2-.8L6.1 21.2A9.1 9.1 0 0 1 2.8 18l1.7-1.9-.8-2L1.5 13A9 9 0 0 1 3 12z\"/></svg>');}
+
+.list-reset{list-style:none;margin:8px 0 0 0;padding:0}
+.list-reset li{padding:2px 0}
