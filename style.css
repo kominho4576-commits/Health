@@ -14,7 +14,7 @@ html,body{margin:0;padding:0;background:var(--bg);color:var(--fg);font-family:-a
   padding:8px 16px 6px;
   display:flex; align-items:center; gap:12px;
   border-bottom:1px solid #1f2228; z-index:20;
-  padding-top: calc(8px + env(safe-area-inset-top)); /* lift a bit higher */
+  padding-top: calc(8px + env(safe-area-inset-top));
 }
 .appbar h1{margin:0;font-size:18px}
 #date{margin-left:auto;color:var(--muted);font-variant-numeric:tabular-nums}
@@ -94,21 +94,14 @@ button.danger.sm{padding:6px 8px;font-size:12px}
 .dot.partial{background:#4da3ff}
 .cell .dots{display:flex;gap:4px;flex-wrap:wrap}
 
-/* Rank */
-.rank-wrap{display:flex;flex-direction:column;gap:8px}
-.rank-badge{align-self:flex-start;background:#111318;border:1px solid #2a2f39;border-radius:12px;padding:6px 10px}
-.rank-progress{height:10px;background:#0f1116;border:1px solid #2a2f39;border-radius:999px;overflow:hidden}
-.rank-progress #rankBar{height:100%;width:0%;background:linear-gradient(90deg,#4da3ff,#48d597)}
-.quest-list{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:8px}
-.quest-list li{display:flex;justify-content:space-between;align-items:center;border:1px solid #2a2f39;background:#101319;border-radius:10px;padding:8px 10px}
-
 /* Fixed bottom tabbar (no emojis) */
 .tabbar.fixed{
-  position:fixed; left:0; right:0; bottom:0;
+  position:fixed; left:0; right:0;
   display:grid; grid-template-columns:repeat(4,1fr); gap:8px;
   background:rgba(14,15,18,0.92); backdrop-filter:saturate(120%) blur(8px);
   padding:10px 12px; border-top:1px solid #1f2228; z-index:20;
-  padding-bottom: calc(10px + env(safe-area-inset-bottom));
+  /* bottom will be controlled by JS via --tabbar-bottom to avoid iOS wobble */
+  bottom: var(--tabbar-bottom, calc(env(safe-area-inset-bottom) + 0px));
 }
 .tabbar button{
   display:flex; align-items:center; justify-content:center;
@@ -118,5 +111,5 @@ button.danger.sm{padding:6px 8px;font-size:12px}
 .tabbar button.active{outline:2px solid var(--ring)}
 .tabbar button span{pointer-events:none}
 
-/* spacer for fixed bars */
-.footspace{height:120px}
+/* spacer for fixed bars (height is JS-managed) */
+.footspace{height: var(--tabbar-space, 120px)}

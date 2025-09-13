@@ -1,6 +1,32 @@
-// 오늘운동 v3.1 — Fixed header/tabbar + no-emoji tab buttons + stacked settings layout
+// 오늘운동 v3.2 — iOS tabbar anti-wobble using visualViewport
 const $ = (sel, el=document) => el.querySelector(sel);
 const $$ = (sel, el=document) => Array.from(el.querySelectorAll(sel));
+
+// ---- anti-wobble: lock tabbar to viewport bottom ----
+(function pinTabbar(){
+  const tabbar = $("#tabbar");
+  const footspace = $("#footspace");
+  if (!tabbar) return;
+
+  function apply(){
+    const vv = window.visualViewport;
+    // gap between layout viewport and visual viewport (browser chrome height)
+    const gap = vv ? Math.max(0, window.innerHeight - vv.height - vv.offsetTop) : 0;
+    // Set CSS vars so CSS can position and reserve space consistently
+    document.documentElement.style.setProperty("--tabbar-bottom", `${gap}px`);
+    // Reserve space equal to tabbar height + gap + safe-area
+    const h = tabbar.getBoundingClientRect().height;
+    document.documentElement.style.setProperty("--tabbar-space", `${h + gap + 10}px`);
+  }
+  apply();
+  if (window.visualViewport){
+    window.visualViewport.addEventListener('resize', apply);
+    window.visualViewport.addEventListener('scroll', apply);
+  }
+  window.addEventListener('orientationchange', ()=>setTimeout(apply, 250));
+  window.addEventListener('load', apply);
+})();
+// -----------------------------------------------------
 
 const K_SETTINGS = "workout.v3.settings";
 const K_DAILY = (ds) => `workout.v3.daily.${ds}`;
@@ -147,7 +173,7 @@ function buildExerciseRow(ex){
     tRow.classList.remove('hidden');
     const tEl=$(".timer",tRow), bS=$(".tStart",tRow), bP=$(".tPause",tRow), bR=$(".tReset",tRow);
     let interval=null, remain=target; const draw=()=>{ const m=Math.floor(remain/60), s=remain%60; tEl.textContent=`${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`; }; draw();
-    const tick=()=>{ remain=Math.max(0,remain-1); draw(); if(remain===0){ clearInterval(interval); interval=null; bS.classList.remove('active'); bP.disabled=True; bR.disabled=false; if(!vibrateOkay()){ playBeep(); tEl.classList.add('flash'); setTimeout(()=>tEl.classList.remove('flash'),450);} const idx=daily.ex[ex.key].done.findIndex(v=>!v); if(idx>=0) setDone(ex.key,idx,true);} };
+    const tick=()=>{ remain=Math.max(0,remain-1); draw(); if(remain===0){ clearInterval(interval); interval=null; bS.classList.remove('active'); bP.disabled=true; bR.disabled=false; if(!vibrateOkay()){ playBeep(); tEl.classList.add('flash'); setTimeout(()=>tEl.classList.remove('flash'),450);} const idx=daily.ex[ex.key].done.findIndex(v=>!v); if(idx>=0) setDone(ex.key,idx,true);} };
     bS.addEventListener('click',()=>{ if(interval) return; bS.classList.add('active'); bP.disabled=false; bR.disabled=false; if(remain<=0) remain=target; interval=setInterval(tick,1000); });
     bP.addEventListener('click',()=>{ if(!interval) return; clearInterval(interval); interval=null; bS.classList.remove('active'); });
     bR.addEventListener('click',()=>{ if(interval){clearInterval(interval); interval=null;} remain=target; draw(); bP.disabled=true; bR.disabled=true; bS.classList.remove('active'); });

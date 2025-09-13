@@ -109,14 +109,14 @@
     </section>
   </main>
 
-  <nav class="tabbar fixed">
+  <nav class="tabbar fixed" id="tabbar">
     <button data-view="home" class="active"><span>홈</span></button>
     <button data-view="calendar"><span>달력</span></button>
     <button data-view="rank"><span>랭크</span></button>
     <button data-view="settings"><span>설정</span></button>
   </nav>
 
-  <footer class="footspace"></footer>
+  <footer class="footspace" id="footspace"></footer>
 
   <template id="exerciseTpl">
     <div class="exercise">
@@ -139,7 +139,6 @@
     </div>
   </template>
 
-  <!-- Settings exercise config (stacked, no overflow) -->
   <template id="exCfgTpl">
     <div class="ex-cfg">
       <div class="cfg-row name-row">
