@@ -4,12 +4,10 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <title>오늘운동</title>
-
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="오늘운동">
   <link rel="apple-touch-icon" href="icons/icon-192.png">
-
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="stylesheet" href="styles.css" />
   <script defer src="app.js"></script>
@@ -67,12 +65,12 @@
         <div class="rank-next"><span id="next-rank-label">다음 랭크까지</span> <strong id="to-next">0</strong> pt</div>
       </div>
 
-      <div class="rank-card"><h3>퀘스트</h3>
-      <ul class="quests">
-        <li>오늘 세트 6개 완료 (+20pt)</li>
-        <li>연속 3일 운동 (+30pt)</li>
-        <li>플랭크 100초 이상 (+20pt)</li>
-      </ul></div>
+      <div class="card quests-card">
+        <div class="row space"><h3>퀘스트</h3><span class="muted" id="quest-date-label"></span></div>
+        <div class="progress" aria-label="퀘스트 진행도"><div id="quest-progress" class="progress-bar" style="width:0%"></div></div>
+        <div class="rank-next"><span id="quest-status-label" class="muted"></span></div>
+        <ul class="quest-list" id="quest-list"></ul>
+      </div>
     </section>
 
     <!-- Settings -->
