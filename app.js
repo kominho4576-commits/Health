@@ -1,33 +1,6 @@
-// 오늘운동 v3.3 — stronger iOS tabbar pin, restored rank UI
+// 오늘운동 v3.4 — top navigation, rank quest v3.1
 const $ = (sel, el=document) => el.querySelector(sel);
 const $$ = (sel, el=document) => Array.from(el.querySelectorAll(sel));
-
-/* Anti-wobble 2.0: clamp tiny visualViewport deltas, constant spacer */
-(function pinTabbar(){
-  const tabbar = $("#tabbar");
-  if (!tabbar) return;
-  let lastDY=0;
-  function apply(){
-    let dy=0;
-    const vv=window.visualViewport;
-    if (vv){
-      const raw = window.innerHeight - vv.height - vv.offsetTop;
-      // clamp to [0, 40] and round to integer to avoid micro-jitter
-      dy = Math.min(40, Math.max(0, Math.round(raw)));
-    }
-    if (Math.abs(dy-lastDY)>1){
-      document.documentElement.style.setProperty("--tabbar-dy", dy+"px");
-      lastDY=dy;
-    }
-  }
-  apply();
-  if (window.visualViewport){
-    window.visualViewport.addEventListener('resize', ()=>requestAnimationFrame(apply));
-    window.visualViewport.addEventListener('scroll', ()=>requestAnimationFrame(apply));
-  }
-  window.addEventListener('orientationchange', ()=>setTimeout(apply, 250));
-  window.addEventListener('load', apply);
-})();
 
 const K_SETTINGS = "workout.v3.settings";
 const K_DAILY = (ds) => `workout.v3.daily.${ds}`;
@@ -114,10 +87,10 @@ const views = {
   rank: $("#view-rank"),
   settings: $("#view-settings"),
 };
-document.querySelector(".tabbar").addEventListener('click', (e)=>{
+$("#topnav").addEventListener('click', (e)=>{
   const btn=e.target.closest('button[data-view]'); if(!btn) return;
   const v=btn.dataset.view;
-  $$(".tabbar button").forEach(b=>b.classList.toggle('active', b===btn));
+  $$("#topnav button").forEach(b=>b.classList.toggle('active', b===btn));
   Object.entries(views).forEach(([k,el])=>el.classList.toggle('active', k===v));
   $("#title").textContent = v==="home"?"오늘운동": v==="calendar"?"달력": v==="rank"?"랭크":"설정";
   if (v==="calendar") renderCalendar();
@@ -217,22 +190,45 @@ function renderSettings(){
   }
 }
 
-function renderAll(){ renderDate(); renderRestBanner(); ensureDailyStructure(); renderPlan(); renderExercises(); renderSummary(); renderSettings(); updateDailyPoints(); }
+/* Rank v3.1-styled quest list */
+function renderRank(){
+  const p=meta.points||0; const info=rankInfoFromPoints(p);
+  $("#rankBadge").textContent=info.cur.name; $("#rankBar").style.width=info.prog+"%"; $("#rankInfo").textContent = info.next ? `다음 랭크(${info.next.name})까지 ${info.next.req - p}pt` : `최고 랭크 달성!`;
+  const ds=dateStr; const wIdx=settings.startDate?weekIndex(settings.startDate,ds):0; const plank=settings.exercises.find(e=>e.type==="timer");
+  const quests=[
+    { id:'q_sets_6', label:'오늘 세트 6개 완료', done: totalSetsDoneToday()>=6, reward:30 },
+    { id:'q_streak_3', label:'연속 3일 운동', done: (meta.streak||0)>=3, reward:50 },
+    plank ? { id:'q_plank_time', label:`플랭크 ${Math.max(60, targetFor(plank,wIdx)*2)}초 이상`, done: (sumTimerDoneToday(plank.key)>=Math.max(60, targetFor(plank,wIdx)*2)), reward:25 } : null
+  ].filter(Boolean);
+  const ul=$("#questList"); ul.innerHTML="";
+  quests.forEach(q=>{
+    const li=document.createElement('li');
+    const status = q.done ? `완료 +${q.reward}pt` : `미완료`;
+    li.innerHTML=`<span>${q.label}</span><span class="status ${q.done?'done':''}">${status}</span>`;
+    ul.appendChild(li);
+  });
+}
+function totalSetsDoneToday(){ let c=0; for(const ex of settings.exercises){ const arr=daily.ex?.[ex.key]?.done||[]; c+=arr.filter(Boolean).length;} return c; }
+function sumTimerDoneToday(key){ const ds=dateStr; const wIdx=settings.startDate?weekIndex(settings.startDate,ds):0; const ex=settings.exercises.find(e=>e.key===key); if(!ex) return 0; const t=targetFor(ex,wIdx); const arr=daily.ex?.[key]?.done||[]; return arr.filter(Boolean).length*t; }
 
-function maybeOnboard(){ if(settings.startDate){ onboard?.classList.add('hidden'); return; } onboard?.classList.remove('hidden'); onStartDate && (onStartDate.value=todayStr()); }
-onConfirm?.addEventListener('click',()=>{ const n=Math.max(1,Math.floor(+onDay.value||1)); const pick=onStartDate.value; let start; if(pick) start=pick; else{ const d=new Date(); d.setDate(d.getDate()-(n-1)); start=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; } settings.startDate=start; saveSettings(settings); daily=loadDaily(dateStr); ensureDailyStructure(); onboard?.classList.add('hidden'); renderAll(); });
-saveCfg?.addEventListener('click',()=>{ settings.startDate = cfgStartDate.value || settings.startDate; saveSettings(settings); renderAll(); alert("저장되었습니다."); });
-addExerciseBtn?.addEventListener('click',()=>{ const name=prompt("운동 이름을 입력하세요 (예: 버피)"); if(!name) return; const type=(prompt("타입: reps(회) 또는 timer(초)", "reps")||"reps").toLowerCase().startsWith('t')?"timer":"reps"; const base=Math.max(1,Math.floor(+prompt("기본값(회/초)", type==="timer"?"30":"10")||10)); const inc=Math.max(0,Math.floor(+prompt("주간 증가량(회/초)", type==="timer"?"5":"2")||0)); const sets=Math.max(1,Math.floor(+prompt("세트 수","3")||3)); const weekdays=[true,true,true,true,true,false,false]; const key=name.toLowerCase().replace(/\s+/g,'_')+"_"+Math.random().toString(36).slice(2,6); settings.exercises.push({key,name,type,base,incPerWeek:inc,sets,weekdays}); saveSettings(settings); ensureDailyStructure(); renderAll(); });
-clearBtn?.addEventListener('click',()=>{ if(confirm("오늘 기록을 초기화할까요?")){ localStorage.removeItem(K_DAILY(dateStr)); daily=loadDaily(dateStr); ensureDailyStructure(); renderAll(); } });
+function renderAll(){ $("#date").textContent=fmtDateK(dateStr); $("#dayBadge") && ($("#dayBadge").textContent = settings.startDate? `${dayNumber(settings.startDate,dateStr)}일차` : ""); if (settings.startDate && isRestDay(settings.restDays,dateStr)) $("#restBanner")?.classList.remove('hidden'); else $("#restBanner")?.classList.add('hidden'); ensureDailyStructure(); renderPlan(); renderExercises(); renderSummary(); renderSettings(); updateDailyPoints(); }
+
+function maybeOnboard(){ if(settings.startDate){ $("#onboard")?.classList.add('hidden'); return; } $("#onboard")?.classList.remove('hidden'); $("#onStartDate") && ($("#onStartDate").value=todayStr()); }
+$("#onConfirm")?.addEventListener('click',()=>{ const n=Math.max(1,Math.floor(+$("#onDay").value||1)); const pick=$("#onStartDate").value; let start; if(pick) start=pick; else{ const d=new Date(); d.setDate(d.getDate()-(n-1)); start=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; } settings.startDate=start; saveSettings(settings); daily=loadDaily(dateStr); ensureDailyStructure(); $("#onboard")?.classList.add('hidden'); renderAll(); });
+$("#saveCfg")?.addEventListener('click',()=>{ settings.startDate = $("#cfgStartDate").value || settings.startDate; saveSettings(settings); renderAll(); alert("저장되었습니다."); });
+$("#addExerciseBtn")?.addEventListener('click',()=>{ const name=prompt("운동 이름을 입력하세요 (예: 버피)"); if(!name) return; const type=(prompt("타입: reps(회) 또는 timer(초)", "reps")||"reps").toLowerCase().startsWith('t')?"timer":"reps"; const base=Math.max(1,Math.floor(+prompt("기본값(회/초)", type==="timer"?"30":"10")||10)); const inc=Math.max(0,Math.floor(+prompt("주간 증가량(회/초)", type==="timer"?"5":"2")||0)); const sets=Math.max(1,Math.floor(+prompt("세트 수","3")||3)); const weekdays=[true,true,true,true,true,false,false]; const key=name.toLowerCase().replace(/\\s+/g,'_')+"_"+Math.random().toString(36).slice(2,6); settings.exercises.push({key,name,type,base,incPerWeek:inc,sets,weekdays}); saveSettings(settings); ensureDailyStructure(); renderAll(); });
+$("#clearToday")?.addEventListener('click',()=>{ if(confirm("오늘 기록을 초기화할까요?")){ localStorage.removeItem(K_DAILY(dateStr)); daily=loadDaily(dateStr); ensureDailyStructure(); renderAll(); } });
 
 setInterval(()=>{ const now=todayStr(); if(now!==dateStr){ dateStr=now; daily=loadDaily(dateStr); ensureDailyStructure(); renderAll(); } },30000);
 
-let deferredPrompt; window.addEventListener('beforeinstallprompt',e=>{e.preventDefault(); deferredPrompt=e; installBtn && (installBtn.hidden=false);});
-installBtn?.addEventListener('click',async()=>{ if(deferredPrompt){ deferredPrompt.prompt(); await deferredPrompt.userChoice; deferredPrompt=null; installBtn.hidden=true; } else alert("iOS는 Safari 공유 버튼 → '홈 화면에 추가'"); });
+let deferredPrompt; window.addEventListener('beforeinstallprompt',e=>{e.preventDefault(); deferredPrompt=e; $("#installBtn") && ($("#installBtn").hidden=false);});
+$("#installBtn")?.addEventListener('click',async()=>{ if(deferredPrompt){ deferredPrompt.prompt(); await deferredPrompt.userChoice; deferredPrompt=null; $("#installBtn").hidden=true; } else alert("iOS는 Safari 공유 버튼 → '홈 화면에 추가'"); });
 
 if('serviceWorker' in navigator){ window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js')); }
 
 /* Calendar */
+const calPrev=$("#calPrev"), calNext=$("#calNext"), calMonth=$("#calMonth"), calEl=$("#calendar"), calDetail=$("#calDetail");
+let calCtx = (function(){ const d=new Date(); return { year:d.getFullYear(), month:d.getMonth() }; })();
 function monthStr(y,m){ return `${y}.${String(m+1).padStart(2,'0')}`; }
 function daysInMonth(y,m){ return new Date(y, m+1, 0).getDate(); }
 function renderCalendar(){
@@ -276,21 +272,6 @@ function renderCalendar(){
 }
 calPrev?.addEventListener('click',()=>{ calCtx.month--; if(calCtx.month<0){calCtx.month=11; calCtx.year--; } renderCalendar(); });
 calNext?.addEventListener('click',()=>{ calCtx.month++; if(calCtx.month>11){calCtx.month=0; calCtx.year++; } renderCalendar(); });
-
-/* Rank */
-function renderRank(){
-  const p=meta.points||0; const info=rankInfoFromPoints(p);
-  rankBadge.textContent=info.cur.name; rankBar.style.width=info.prog+"%"; rankInfo.textContent = info.next ? `다음 랭크(${info.next.name})까지 ${info.next.req - p}pt` : `최고 랭크 달성!`;
-  const ds=dateStr; const wIdx=settings.startDate?weekIndex(settings.startDate,ds):0; const plank=settings.exercises.find(e=>e.type==="timer");
-  const quests=[
-    { id:'q_sets_6', label:'오늘 세트 6개 완료', done: totalSetsDoneToday()>=6, reward:30 },
-    { id:'q_streak_3', label:'연속 3일 운동', done: (meta.streak||0)>=3, reward:50 },
-    plank ? { id:'q_plank_time', label:`플랭크 ${Math.max(60, targetFor(plank,wIdx)*2)}초 이상`, done: (sumTimerDoneToday(plank.key)>=Math.max(60, targetFor(plank,wIdx)*2)), reward:25 } : null
-  ].filter(Boolean);
-  questList.innerHTML=""; quests.forEach(q=>{ const li=document.createElement('li'); li.innerHTML=`<span>${q.label}</span><span class="${q.done?'pill':''}">${q.done?'완료 +'+q.reward+'pt':'미완료'}</span>`; questList.appendChild(li); });
-}
-function totalSetsDoneToday(){ let c=0; for(const ex of settings.exercises){ const arr=daily.ex?.[ex.key]?.done||[]; c+=arr.filter(Boolean).length;} return c; }
-function sumTimerDoneToday(key){ const ds=dateStr; const wIdx=settings.startDate?weekIndex(settings.startDate,ds):0; const ex=settings.exercises.find(e=>e.key===key); if(!ex) return 0; const t=targetFor(ex,wIdx); const arr=daily.ex?.[key]?.done||[]; return arr.filter(Boolean).length*t; }
 
 function init(){ ensureDailyStructure(); renderAll(); maybeOnboard(); renderCalendar(); renderRank(); }
 if('serviceWorker' in navigator){ window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js')); }

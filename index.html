@@ -18,6 +18,14 @@
     <button id="installBtn" hidden>앱 설치</button>
   </header>
 
+  <!-- NEW: top navigation just under appbar -->
+  <nav class="topnav" id="topnav" aria-label="탭 선택">
+    <button data-view="home" class="active">홈</button>
+    <button data-view="calendar">달력</button>
+    <button data-view="rank">랭크</button>
+    <button data-view="settings">설정</button>
+  </nav>
+
   <main id="view-home" class="view active">
     <section id="onboard" class="card hidden">
       <h2>처음 설정</h2>
@@ -79,7 +87,7 @@
     </section>
     <section class="card">
       <h3>퀘스트</h3>
-      <ul id="questList" class="quest-list"></ul>
+      <ul id="questList" class="quest-list v31"></ul>
     </section>
   </main>
 
@@ -108,13 +116,6 @@
       </ul>
     </section>
   </main>
-
-  <nav class="tabbar fixed" id="tabbar" aria-label="하단 탭">
-    <button data-view="home" class="active"><span>홈</span></button>
-    <button data-view="calendar"><span>달력</span></button>
-    <button data-view="rank"><span>랭크</span></button>
-    <button data-view="settings"><span>설정</span></button>
-  </nav>
 
   <footer class="footspace" id="footspace"></footer>
 
